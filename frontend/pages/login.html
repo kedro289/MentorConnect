@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход — MentorConnect</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="auth-layout">
+
+  <!-- Левая: брендинг -->
+  <div class="auth-brand">
+    <div class="auth-brand-content">
+      <div class="auth-brand-logo">Mentor<em>Connect</em></div>
+      <h2>С нами быстрее расти</h2>
+      <p>Более 150 опытных менторов готовы помочь вам достичь карьерных целей</p>
+      <div class="auth-brand-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🎯</div>
+          <span>Персональные сессии 1 на 1</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">💡</div>
+          <span>Практический опыт от профессионалов</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">📈</div>
+          <span>Ускоренный карьерный рост</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Правая: форма -->
+  <div class="auth-form-side">
+    <div class="auth-form-inner">
+      <h2>Добро пожаловать</h2>
+      <p class="auth-subtitle">Войдите в свой аккаунт MentorConnect</p>
+
+      <div id="alertBox" style="display:none"></div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="example@mail.com" autocomplete="email">
+          <div class="field-error-msg" id="emailErr">Введите корректный email</div>
+        </div>
+        <div class="form-group">
+          <label for="password">Пароль</label>
+          <input type="password" id="password" placeholder="Ваш пароль" autocomplete="current-password">
+          <div class="field-error-msg" id="passErr">Введите пароль</div>
+        </div>
+        <button type="submit" class="btn-primary" id="submitBtn" style="margin-top:8px">Войти</button>
+      </form>
+
+      <div class="form-link" style="margin-top:20px">
+        Нет аккаунта? <a href="register.html">Зарегистрироваться</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  redirectIfAuth();
+
+  const form    = document.getElementById('loginForm');
+  const emailEl = document.getElementById('email');
+  const passEl  = document.getElementById('password');
+
+  function validateField(input, errId, testFn) {
+    const errEl = document.getElementById(errId);
+    const ok = testFn(input.value);
+    input.classList.toggle('invalid', !ok);
+    input.classList.toggle('valid',    ok);
+    errEl.style.display = ok ? 'none' : 'block';
+    return ok;
+  }
+
+  emailEl.addEventListener('blur', () =>
+    validateField(emailEl, 'emailErr', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())));
+  passEl.addEventListener('blur',  () =>
+    validateField(passEl,  'passErr',  v => v.length > 0));
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const okEmail = validateField(emailEl, 'emailErr', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()));
+    const okPass  = validateField(passEl,  'passErr',  v => v.length > 0);
+    if (!okEmail || !okPass) return;
+
+    const btn   = document.getElementById('submitBtn');
+    const alert = document.getElementById('alertBox');
+    alert.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Загрузка...';
+
+    try {
+      const data = await apiRequest('POST', '/auth/login', {
+        email:    emailEl.value.trim(),
+        password: passEl.value,
+      });
+      setToken(data.token);
+      setUser(data.user);
+      const dash = data.user.role === 'mentor' ? 'mentor-dashboard.html'
+                 : data.user.role === 'admin'  ? 'admin.html'
+                 : 'student-dashboard.html';
+      window.location.href = dash;
+    } catch (err) {
+      alert.className = 'alert alert-error';
+      alert.textContent = err.message || 'Неверный email или пароль';
+      alert.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Войти';
+    }
+  });
+</script>
+</body>
+</html>

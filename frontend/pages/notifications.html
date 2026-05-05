@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Уведомления — MentorConnect</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="site-header"></header>
+
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-avatar">🔔</div>
+    <div class="sidebar-name">Уведомления</div>
+    <div class="sidebar-role">Центр уведомлений</div>
+    <ul class="sidebar-nav" style="margin-top:16px">
+      <li><a href="#all" class="active" onclick="return filterNotifs('all',this)">📋 Все</a></li>
+      <li><a href="#unread" onclick="return filterNotifs('unread',this)">🔵 Непрочитанные</a></li>
+    </ul>
+  </aside>
+
+  <div class="content-area">
+    <div class="content-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h3 style="margin:0">Уведомления</h3>
+        <div class="notif-bulk-btns">
+          <button class="btn-sm primary" onclick="markAll()">Прочитать все</button>
+          <button class="btn-sm" onclick="clearRead()">Удалить прочитанные</button>
+        </div>
+      </div>
+      <div id="notifsList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/header.js"></script>
+<script src="../js/notifSocket.js"></script>
+<script>
+  if (!requireAuth()) throw new Error('Not authed');
+
+  let _all = [];
+  let _filter = 'all';
+
+  const ICONS = {
+    new_application:     '📋',
+    application_accepted:'✅',
+    application_rejected:'❌',
+    new_message:         '💬',
+    new_review:          '⭐',
+  };
+
+  async function loadNotifs() {
+    const el = document.getElementById('notifsList');
+    el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+    try {
+      const data = await apiRequest('GET', '/notifications?limit=50');
+      _all = data.notifications || [];
+      renderList();
+    } catch {
+      el.innerHTML = '<div class="empty-state"><p>Ошибка загрузки уведомлений</p></div>';
+    }
+  }
+
+  function renderList() {
+    const el = document.getElementById('notifsList');
+    const list = _filter === 'unread' ? _all.filter(n => !n.is_read) : _all;
+    if (!list.length) {
+      el.innerHTML = '<div class="empty-state"><p>Нет уведомлений</p></div>';
+      return;
+    }
+    el.innerHTML = `<div class="notif-page-list">${list.map(n => {
+      const icon = ICONS[n.type] || '🔔';
+      const time = n.created_at ? new Date(n.created_at).toLocaleString('ru-RU', {
+        day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'
+      }) : '';
+      const href = n.link && n.link !== '#' ? `href="${n.link}"` : '';
+      return `<a class="notif-page-item ${n.is_read?'':'unread'}" ${href}
+                 onclick="onItemClick(event,${n.id})">
+        <span class="notif-page-icon">${icon}</span>
+        <div class="notif-page-body">
+          <div class="notif-page-title">${n.title}</div>
+          ${n.body ? `<div class="notif-page-text">${n.body}</div>` : ''}
+          <div class="notif-page-time">${time}</div>
+        </div>
+        <button class="notif-page-del" onclick="delNotif(event,${n.id})" title="Удалить">✕</button>
+      </a>`;
+    }).join('')}</div>`;
+  }
+
+  async function onItemClick(e, id) {
+    const notif = _all.find(n => n.id === id);
+    if (notif && !notif.is_read) {
+      notif.is_read = true;
+      try { await apiRequest('PUT', `/notifications/${id}/read`); } catch { /* ignore */ }
+      renderList();
+    }
+  }
+
+  async function delNotif(e, id) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await apiRequest('DELETE', `/notifications/${id}`);
+      _all = _all.filter(n => n.id !== id);
+      renderList();
+    } catch (err) { alert(err.message || 'Ошибка удаления'); }
+  }
+
+  async function markAll() {
+    try {
+      await apiRequest('PUT', '/notifications/read-all');
+      _all = _all.map(n => ({ ...n, is_read: true }));
+      if (window.__notifSocket) window.__notifSocket.setBadge(0);
+      renderList();
+    } catch (err) { alert(err.message); }
+  }
+
+  async function clearRead() {
+    const readIds = _all.filter(n => n.is_read).map(n => n.id);
+    try {
+      await Promise.all(readIds.map(id => apiRequest('DELETE', `/notifications/${id}`)));
+      _all = _all.filter(n => !n.is_read);
+      renderList();
+    } catch (err) { alert(err.message); }
+  }
+
+  function filterNotifs(f, el) {
+    _filter = f;
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    if (el) el.classList.add('active');
+    renderList();
+    return false;
+  }
+
+  loadNotifs();
+</script>
+</body>
+</html>

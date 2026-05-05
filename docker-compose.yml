@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  # База данных PostgreSQL в изолированном контейнере
+  postgres:
+    image: postgres:16-alpine
+    container_name: mentorconnect_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mentorconnect
+      POSTGRES_USER: mentor_user
+      POSTGRES_PASSWORD: mentor_pass_2024
+    ports:
+      - "5433:5432"        # порт 5433 снаружи чтобы не конфликтовать с локальным PostgreSQL
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # данные сохраняются между перезапусками
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mentor_user -d mentorconnect"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Приложение Node.js
+  app:
+    build: .
+    container_name: mentorconnect_app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    volumes:
+      # Монтируем ТОЛЬКО папку проекта — Claude не видит ничего снаружи
+      - .:/app
+      - /app/node_modules          # node_modules остаётся внутри контейнера
+    environment:
+      PORT: 3000
+      DB_HOST: postgres            # имя сервиса в docker-compose сети
+      DB_PORT: 5432
+      DB_NAME: mentorconnect
+      DB_USER: mentor_user
+      DB_PASSWORD: mentor_pass_2024
+      JWT_SECRET: super_secret_jwt_key_mentorconnect_2024
+      JWT_EXPIRES_IN: 7d
+      NODE_ENV: development
+    working_dir: /app
+    command: sh -c "npm install && npm start"
+
+volumes:
+  postgres_data:
+    name: mentorconnect_postgres_data

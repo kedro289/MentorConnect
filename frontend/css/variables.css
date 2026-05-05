@@ -1,0 +1,133 @@
+/*
+ * Файл: frontend/css/variables.css
+ * Отвечает за: CSS дизайн-систему — цвета, типографику, отступы, тени.
+ * Используется в: все HTML страницы (подключается первым, до style.css).
+ */
+
+:root {
+  /* === ЦВЕТА: ОСНОВНЫЕ === */
+  --primary:        #E06318;
+  --primary-dark:   #C0511A;
+  --primary-light:  #FEF3E6;
+  --primary-alpha:  rgba(224, 99, 24, 0.15);
+  --secondary:      #3B82F6;
+  --secondary-dark: #2563EB;
+
+  /* === ЦВЕТА: НЕЙТРАЛЬНЫЕ === */
+  --white:       #FFFFFF;
+  --bg:          #F5F5F5;
+  --bg-dark:     #EBEBEB;
+  --text:        #232323;
+  --muted:       #767676;
+  --text-light:  #AAAAAA;
+  --border:      #E0E0E0;
+  --border-dark: #C8C8C8;
+
+  /* === ЦВЕТА: СТАТУСЫ === */
+  --success:        #1E8449;
+  --success-bg:     #EAFAF1;
+  --success-border: #B2E0C8;
+  --warning:        #B8860B;
+  --warning-bg:     #FFF8E1;
+  --warning-border: #F0D88A;
+  --error:          #C0392B;
+  --error-bg:       #FFEAEA;
+  --error-border:   #F5C6C6;
+  --star-color:     #F5A623;
+
+  /* === ТЕНИ === */
+  --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-sm:   0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md:   0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-lg:   0 4px 20px rgba(0, 0, 0, 0.13);
+  --shadow-xl:   0 8px 32px rgba(0, 0, 0, 0.18);
+  --shadow-focus: 0 0 0 3px rgba(224, 99, 24, 0.22);
+
+  /* === РАДИУСЫ === */
+  --radius:      8px;
+  --radius-sm:   4px;
+  --radius-lg:   12px;
+  --radius-xl:   20px;
+  --radius-full: 9999px;
+
+  /* === ТИПОГРАФИКА === */
+  --font-family: 'Segoe UI', Arial, 'Helvetica Neue', sans-serif;
+
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
+
+  --font-normal:   400;
+  --font-medium:   500;
+  --font-semibold: 600;
+  --font-bold:     700;
+
+  --leading-tight:   1.25;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.625;
+
+  /* === ОТСТУПЫ (4px-сетка) === */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* === Z-INDEX === */
+  --z-dropdown: 100;
+  --z-sticky:   200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-toast:    500;
+
+  /* === АНИМАЦИИ === */
+  --duration-fast:   120ms;
+  --duration-normal: 220ms;
+  --duration-slow:   380ms;
+  --ease-default:    ease;
+  --ease-in-out:     cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* === МАКЕТ === */
+  --container-max: 1100px;
+  --header-height: 64px;
+}
+
+/* ===== ТЁМНАЯ ТЕМА ===== */
+[data-theme="dark"] {
+  --white:          #1E1E2E;
+  --bg:             #13131F;
+  --bg-dark:        #252538;
+  --text:           #E4E4F0;
+  --muted:          #9090A8;
+  --text-light:     #606075;
+  --border:         #2E2E42;
+  --border-dark:    #3E3E58;
+
+  --primary-light:  rgba(224, 99, 24, 0.14);
+  --primary-alpha:  rgba(224, 99, 24, 0.18);
+
+  --success-bg:     rgba(30, 132, 73, 0.15);
+  --success-border: rgba(30, 132, 73, 0.30);
+  --error-bg:       rgba(192, 57, 43, 0.15);
+  --error-border:   rgba(192, 57, 43, 0.30);
+  --warning-bg:     rgba(184, 134, 11, 0.15);
+  --warning-border: rgba(184, 134, 11, 0.30);
+
+  --card-shadow:  0 2px 12px rgba(0, 0, 0, 0.45);
+  --shadow-sm:    0 1px 4px  rgba(0, 0, 0, 0.35);
+  --shadow-md:    0 2px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg:    0 4px 24px rgba(0, 0, 0, 0.55);
+  --shadow-xl:    0 8px 40px rgba(0, 0, 0, 0.65);
+  --shadow-focus: 0 0 0 3px rgba(224, 99, 24, 0.30);
+}

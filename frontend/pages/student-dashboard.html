@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Личный кабинет — MentorConnect</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="site-header"></header>
+
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-avatar" id="sidebarAvatar">С</div>
+    <div class="sidebar-name" id="sidebarName">Загрузка...</div>
+    <div class="sidebar-role">Студент</div>
+    <div class="sidebar-progress-wrap">
+      <div class="sidebar-progress-bar">
+        <div class="sidebar-progress-fill" id="sidebarProgress" style="width:0%"></div>
+      </div>
+      <div class="sidebar-progress-label" id="sidebarProgressLabel">Профиль не заполнен</div>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="#profile"      class="active" onclick="return showSection('profile',this)">👤 Профиль</a></li>
+      <li><a href="#applications" onclick="return showSection('applications',this)">📋 Мои заявки</a></li>
+      <li><a href="#favorites"    onclick="return showSection('favorites',this)">❤️ Избранное</a></li>
+      <li><a href="#chats"        onclick="return showSection('chats',this)">💬 Чаты</a></li>
+      <li><a href="../index.html">🔍 Найти ментора</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main content -->
+  <div class="content-area">
+
+    <!-- Profile section -->
+    <div id="section-profile" class="content-section">
+      <h3>Мой профиль</h3>
+      <div id="profileView">
+        <table class="data-table" id="profileTable"></table>
+        <br>
+        <button class="btn-primary" style="width:auto;padding:9px 24px" onclick="showEditForm()">Редактировать</button>
+      </div>
+      <div id="profileEdit" style="display:none">
+        <div class="form-group"><label>Полное имя</label><input type="text" id="editName"></div>
+        <div class="form-group"><label>Телефон</label><input type="text" id="editPhone"></div>
+        <div class="form-group"><label>Интересы</label><input type="text" id="editInterests" placeholder="JavaScript, Python..."></div>
+        <div class="form-group"><label>О себе</label><textarea id="editBio" rows="3"></textarea></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" style="width:auto;padding:9px 24px" onclick="saveProfile()">Сохранить</button>
+          <button class="btn-primary" style="width:auto;padding:9px 24px;background:#767676" onclick="cancelEdit()">Отмена</button>
+        </div>
+        <div id="editAlert" style="display:none;margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- Applications section -->
+    <div id="section-applications" class="content-section" style="display:none">
+      <h3>Мои заявки на менторство</h3>
+      <div id="applicationsList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Favorites section -->
+    <div id="section-favorites" class="content-section" style="display:none">
+      <h3>Избранные менторы</h3>
+      <div id="favoritesList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Chats section -->
+    <div id="section-chats" class="content-section" style="display:none">
+      <h3>Мои чаты</h3>
+      <div id="chatsList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/header.js"></script>
+<script src="../js/notifSocket.js"></script>
+<script src="../js/dashboard-student.js"></script>
+</body>
+</html>

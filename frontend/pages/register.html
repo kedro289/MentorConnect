@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация — MentorConnect</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div class="auth-layout">
+
+  <!-- Левая: брендинг -->
+  <div class="auth-brand">
+    <div class="auth-brand-content">
+      <div class="auth-brand-logo">Mentor<em>Connect</em></div>
+      <h2>Начните путь к росту</h2>
+      <p>Зарегистрируйтесь и найдите ментора, который поможет вам двигаться к цели быстрее</p>
+      <div class="auth-brand-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🚀</div>
+          <span>Бесплатная регистрация за 30 секунд</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🔍</div>
+          <span>Поиск по 150+ менторам</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">💬</div>
+          <span>Общение в чате с ментором</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Правая: форма -->
+  <div class="auth-form-side">
+    <div class="auth-form-inner">
+      <h2>Создать аккаунт</h2>
+      <p class="auth-subtitle">Уже зарегистрированы? <a href="login.html" style="color:var(--primary)">Войти</a></p>
+
+      <div id="alertBox" style="display:none"></div>
+
+      <form id="registerForm" novalidate>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="example@mail.com" autocomplete="email">
+          <div class="field-error-msg" id="emailErr">Введите корректный email</div>
+        </div>
+        <div class="form-group">
+          <label for="password">Пароль</label>
+          <input type="password" id="password" placeholder="Минимум 6 символов" autocomplete="new-password">
+          <div class="password-strength-wrap">
+            <div class="password-strength-track">
+              <div class="password-strength-fill" id="strengthFill"></div>
+            </div>
+            <div class="password-strength-label" id="strengthLabel"></div>
+          </div>
+          <div class="field-error-msg" id="passErr">Минимум 6 символов</div>
+        </div>
+        <div class="form-group">
+          <label for="password2">Повторите пароль</label>
+          <input type="password" id="password2" placeholder="Повторите пароль" autocomplete="new-password">
+          <div class="field-error-msg" id="pass2Err">Пароли не совпадают</div>
+        </div>
+        <div class="form-group">
+          <label for="role">Я хочу</label>
+          <select id="role">
+            <option value="student">Найти ментора (студент)</option>
+            <option value="mentor">Стать ментором</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-primary" id="submitBtn" style="margin-top:8px">Зарегистрироваться</button>
+      </form>
+
+      <div class="form-link" style="margin-top:20px">
+        Нажимая кнопку, вы соглашаетесь с условиями использования платформы
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  redirectIfAuth();
+
+  /* Pre-select role from URL ?role=mentor */
+  const urlRole = new URLSearchParams(window.location.search).get('role');
+  if (urlRole === 'mentor') document.getElementById('role').value = 'mentor';
+
+  const emailEl = document.getElementById('email');
+  const passEl  = document.getElementById('password');
+  const pass2El = document.getElementById('password2');
+
+  /* Password strength */
+  passEl.addEventListener('input', () => {
+    const v = passEl.value;
+    let score = 0;
+    if (v.length >= 6)  score++;
+    if (v.length >= 10) score++;
+    if (/[A-Z]/.test(v))   score++;
+    if (/[0-9]/.test(v))   score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+
+    const fill  = document.getElementById('strengthFill');
+    const label = document.getElementById('strengthLabel');
+    const levels = [
+      { pct: '0%',   bg: 'transparent', text: '' },
+      { pct: '25%',  bg: '#e53935',     text: 'Слабый' },
+      { pct: '50%',  bg: '#f57c00',     text: 'Средний' },
+      { pct: '75%',  bg: '#fbc02d',     text: 'Хороший' },
+      { pct: '100%', bg: '#43a047',     text: 'Надёжный' },
+    ];
+    const lvl = levels[Math.min(score, 4)];
+    fill.style.width      = lvl.pct;
+    fill.style.background = lvl.bg;
+    label.textContent     = lvl.text;
+  });
+
+  function validate() {
+    let ok = true;
+    const fns = [
+      [emailEl, 'emailErr', v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())],
+      [passEl,  'passErr',  v => v.length >= 6],
+      [pass2El, 'pass2Err', v => v === passEl.value && v.length > 0],
+    ];
+    for (const [input, errId, testFn] of fns) {
+      const pass = testFn(input.value);
+      input.classList.toggle('invalid', !pass);
+      input.classList.toggle('valid',    pass);
+      document.getElementById(errId).style.display = pass ? 'none' : 'block';
+      if (!pass) ok = false;
+    }
+    return ok;
+  }
+
+  emailEl.addEventListener('blur', () => validate());
+  passEl.addEventListener('blur',  () => validate());
+  pass2El.addEventListener('blur', () => validate());
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const btn   = document.getElementById('submitBtn');
+    const alert = document.getElementById('alertBox');
+    alert.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Загрузка...';
+
+    try {
+      const data = await apiRequest('POST', '/auth/register', {
+        email:    emailEl.value.trim(),
+        password: passEl.value,
+        role:     document.getElementById('role').value,
+      });
+      setToken(data.token);
+      setUser(data.user);
+      const dash = data.user.role === 'mentor' ? 'mentor-dashboard.html' : 'student-dashboard.html';
+      window.location.href = dash;
+    } catch (err) {
+      alert.className = 'alert alert-error';
+      alert.textContent = err.message || 'Ошибка регистрации';
+      alert.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Зарегистрироваться';
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MentorConnect — найди своего ментора</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header"></header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>Найди ментора и расти быстрее</h1>
+    <p class="hero-sub">Опытные специалисты помогут вам освоить новые навыки,<br>найти работу мечты и выйти на новый уровень</p>
+    <div class="search-bar">
+      <input type="text" id="heroSearch" placeholder="Введите навык, язык или специализацию..." oninput="debouncedSearch()">
+      <button onclick="doHeroSearch()">Найти ментора</button>
+    </div>
+    <div class="hero-cta">
+      <a href="pages/register.html?role=mentor" class="cta-outline">Стать ментором →</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><strong>150+</strong><span>менторов</span></div>
+      <div class="hero-stat"><strong>500+</strong><span>студентов</span></div>
+      <div class="hero-stat"><strong>9</strong><span>категорий</span></div>
+    </div>
+  </div>
+  <div class="hero-wave">
+    <svg viewBox="0 0 1440 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,24 C240,48 480,0 720,24 C960,48 1200,0 1440,24 L1440,48 L0,48 Z" fill="#F5F5F5"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ===== КАТЕГОРИИ ===== -->
+<section class="categories-section">
+  <div class="categories-chips" id="categoryChips">
+    <button class="category-chip active" data-cat="" onclick="selectCategory('',this)">🌐 Все</button>
+    <button class="category-chip" data-cat="JavaScript" onclick="selectCategory('JavaScript',this)">💻 JavaScript</button>
+    <button class="category-chip" data-cat="Python" onclick="selectCategory('Python',this)">🐍 Python</button>
+    <button class="category-chip" data-cat="React" onclick="selectCategory('React',this)">⚛️ React</button>
+    <button class="category-chip" data-cat="Node.js" onclick="selectCategory('Node.js',this)">🟢 Node.js</button>
+    <button class="category-chip" data-cat="Data Science" onclick="selectCategory('Data Science',this)">📊 Data Science</button>
+    <button class="category-chip" data-cat="Дизайн" onclick="selectCategory('Дизайн',this)">🎨 Дизайн</button>
+    <button class="category-chip" data-cat="Mobile" onclick="selectCategory('Mobile',this)">📱 Mobile</button>
+    <button class="category-chip" data-cat="Консультация" onclick="selectCategory('Консультация',this)">💼 Карьера</button>
+  </div>
+</section>
+
+<!-- ===== ФИЛЬТРЫ ===== -->
+<div class="filters">
+  <form id="filterForm" onsubmit="return false;">
+    <select id="filterCategory" style="display:none">
+      <option value="">Все категории</option>
+      <option value="JavaScript">JavaScript</option>
+      <option value="Python">Python</option>
+      <option value="Node.js">Node.js</option>
+      <option value="React">React</option>
+      <option value="Data Science">Data Science</option>
+      <option value="Дизайн">Дизайн</option>
+      <option value="Mobile">Mobile</option>
+      <option value="Консультация">Консультация</option>
+    </select>
+    <select id="filterPrice">
+      <option value="">Любая цена</option>
+      <option value="free">Бесплатно</option>
+      <option value="paid">Платно</option>
+    </select>
+    <input type="number" id="filterRating" placeholder="Рейтинг от" min="1" max="5" style="width:130px">
+    <span class="filter-sort-label">Сортировка:</span>
+    <select id="filterSort">
+      <option value="rating_score">По объективному рейтингу ↓</option>
+      <option value="rating">По средней оценке</option>
+      <option value="rating_reviews">По оценкам студентов</option>
+      <option value="rating_activity">По активности</option>
+      <option value="rating_response">По времени ответа</option>
+      <option value="reviews">По числу отзывов</option>
+      <option value="price_asc">Цена: дешевле</option>
+      <option value="price_desc">Цена: дороже</option>
+      <option value="experience">По опыту</option>
+      <option value="newest">Новые</option>
+    </select>
+    <button onclick="loadMentors(1)">Применить</button>
+    <button type="button" class="btn-reset" onclick="resetFilters()">Сбросить</button>
+  </form>
+</div>
+
+<!-- ===== СПИСОК МЕНТОРОВ ===== -->
+<main class="main-content">
+  <div class="section-title" id="sectionTitle">Менторы</div>
+  <div id="resultsCount" class="results-count"></div>
+  <div id="mentorsGrid" class="mentors-grid">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+  <div id="pagination" class="pagination"></div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-col">
+      <a href="index.html" class="footer-logo">Mentor<span>Connect</span></a>
+      <p class="footer-desc">Платформа для подбора менторов. Найдите опытного специалиста в вашей области и ускорьте профессиональный рост.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Платформа</h4>
+      <ul class="footer-links">
+        <li><a href="index.html">Найти ментора</a></li>
+        <li><a href="pages/register.html">Стать ментором</a></li>
+        <li><a href="pages/login.html">Войти</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Категории</h4>
+      <ul class="footer-links">
+        <li><a href="#" onclick="selectCategory('JavaScript',null);return false">JavaScript</a></li>
+        <li><a href="#" onclick="selectCategory('Python',null);return false">Python</a></li>
+        <li><a href="#" onclick="selectCategory('Дизайн',null);return false">Дизайн</a></li>
+        <li><a href="#" onclick="selectCategory('Data Science',null);return false">Data Science</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">&copy; 2026 MentorConnect — платформа для подбора менторов</div>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/header.js"></script>
+<script src="js/notifSocket.js"></script>
+<script>
+  let currentPage = 1;
+  let currentKeyword = '';
+  let _favoriteIds = new Set();
+
+  /* --- Debounce --- */
+  function debounce(fn, delay) {
+    let t;
+    return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
+  }
+  const debouncedSearch = debounce(() => {
+    currentKeyword = document.getElementById('heroSearch').value.trim();
+    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('.category-chip[data-cat=""]').classList.add('active');
+    document.getElementById('filterCategory').value = '';
+    loadMentors(1);
+  }, 420);
+
+  /* --- URL state --- */
+  function updateUrl(params) {
+    const sp = new URLSearchParams();
+    if (params.keyword)   sp.set('q', params.keyword);
+    if (params.category)  sp.set('cat', params.category);
+    if (params.sort && params.sort !== 'rating') sp.set('sort', params.sort);
+    if (params.page && params.page > 1) sp.set('page', params.page);
+    const qs = sp.toString();
+    history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname);
+  }
+
+  function readUrl() {
+    const sp = new URLSearchParams(window.location.search);
+    const q    = sp.get('q')    || '';
+    const cat  = sp.get('cat')  || '';
+    const sort = sp.get('sort') || 'rating';
+    const page = parseInt(sp.get('page') || '1', 10);
+    if (q) {
+      document.getElementById('heroSearch').value = q;
+      currentKeyword = q;
+    }
+    if (cat) {
+      document.getElementById('filterCategory').value = cat;
+      const chip = document.querySelector(`.category-chip[data-cat="${cat}"]`);
+      if (chip) {
+        document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+      }
+    }
+    const sortEl = document.getElementById('filterSort');
+    if (sortEl && sort) sortEl.value = sort;
+    return page;
+  }
+
+  /* --- Skeleton loading --- */
+  function renderSkeletons(count) {
+    return Array.from({ length: count }, () => `
+      <div class="mentor-card-skeleton">
+        <div class="skeleton skel-avatar"></div>
+        <div class="skel-body">
+          <div class="skeleton skel-line wide"></div>
+          <div class="skeleton skel-line medium"></div>
+          <div class="skeleton skel-line wide"></div>
+          <div class="skeleton skel-line short"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  /* --- Категории-чипы --- */
+  function selectCategory(cat, el) {
+    document.getElementById('filterCategory').value = cat;
+    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+    if (el) el.classList.add('active');
+    else {
+      const chip = document.querySelector(`.category-chip[data-cat="${cat}"]`);
+      if (chip) chip.classList.add('active');
+    }
+    currentKeyword = '';
+    document.getElementById('heroSearch').value = '';
+    document.getElementById('sectionTitle').textContent = cat ? `Менторы — ${cat}` : 'Менторы';
+    loadMentors(1);
+    window.scrollTo({ top: document.querySelector('.main-content').offsetTop - 80, behavior: 'smooth' });
+  }
+
+  function doHeroSearch() {
+    currentKeyword = document.getElementById('heroSearch').value.trim();
+    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('.category-chip[data-cat=""]').classList.add('active');
+    document.getElementById('filterCategory').value = '';
+    loadMentors(1);
+    window.scrollTo({ top: document.querySelector('.main-content').offsetTop - 80, behavior: 'smooth' });
+  }
+
+  function resetFilters() {
+    document.getElementById('filterCategory').value = '';
+    document.getElementById('filterPrice').value = '';
+    document.getElementById('filterRating').value = '';
+    document.getElementById('filterSort').value = 'rating_score';
+    document.getElementById('heroSearch').value = '';
+    currentKeyword = '';
+    document.getElementById('sectionTitle').textContent = 'Менторы';
+    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector('.category-chip[data-cat=""]').classList.add('active');
+    loadMentors(1);
+  }
+
+  async function loadMentors(page = 1) {
+    currentPage = page;
+    const category  = document.getElementById('filterCategory').value;
+    const priceType = document.getElementById('filterPrice').value;
+    const minRating = document.getElementById('filterRating').value;
+    const sort      = document.getElementById('filterSort').value || 'rating_score';
+
+    document.getElementById('mentorsGrid').innerHTML = renderSkeletons(6);
+
+    updateUrl({ keyword: currentKeyword, category, sort, page });
+
+    try {
+      const { mentors, total, pages } = await searchMentors({
+        keyword: currentKeyword, category, priceType, minRating, sort, page, limit: 12,
+      });
+      renderMentors(mentors, total);
+      renderPagination(total, page, 12, pages);
+    } catch {
+      document.getElementById('mentorsGrid').innerHTML =
+        '<div class="empty-state"><div class="icon">⚠️</div><p>Не удалось загрузить данные. Проверьте подключение к серверу.</p></div>';
+    }
+  }
+
+  function renderMentors(mentors, total) {
+    document.getElementById('resultsCount').textContent =
+      total ? `Найдено: ${total} ментор${pluralize(total)}` : '';
+    if (!mentors.length) {
+      document.getElementById('mentorsGrid').innerHTML =
+        '<div class="empty-state"><div class="icon">🔍</div><p>По вашему запросу ничего не найдено</p></div>';
+      return;
+    }
+    document.getElementById('mentorsGrid').innerHTML = mentors.map(m => {
+      const initials = (m.full_name || 'М').charAt(0).toUpperCase();
+      const avatar = m.avatar_url
+        ? `<img src="${m.avatar_url}" alt="${m.full_name || ''}">`
+        : `<span>${initials}</span>`;
+      const expBadge = m.experience_years
+        ? `<span class="exp-badge">${m.experience_years} лет опыта</span>` : '';
+      const tags = (m.expertise || []).slice(0, 3).map(e => `<span class="tag">${e}</span>`).join('');
+      const priceBadge = m.price_type === 'free'
+        ? `<span class="price-badge price-free">Бесплатно</span>`
+        : `<span class="price-badge price-paid">${m.price_amount || '—'} ₽/час</span>`;
+      const rating  = (+m.avg_rating || 0).toFixed(1);
+      const reviews = m.total_reviews || 0;
+      const isFav   = _favoriteIds.has(m.id);
+      const favBtn  = getToken()
+        ? `<button class="favorite-btn ${isFav?'fav-active':''}" onclick="toggleFav(event,${m.id},this)" title="${isFav?'Убрать из избранного':'В избранное'}">${isFav?'❤️':'🤍'}</button>`
+        : '';
+
+      return `
+        <a href="pages/mentor-profile.html?id=${m.id}" class="mentor-card">
+          ${favBtn}
+          <div class="mentor-avatar">${avatar}</div>
+          <div class="mentor-info">
+            <div class="mentor-name">${m.full_name || 'Имя не указано'}${expBadge}</div>
+            <div class="mentor-expertise">${tags}</div>
+            <div class="mentor-bio">${m.bio || 'Биография не указана'}</div>
+            <div class="mentor-footer">
+              <div class="mentor-rating">
+                <span class="stars">${starsHtml(m.avg_rating || 0)}</span>
+                <strong>${rating}</strong>
+                <span class="review-count">(${reviews})</span>
+              </div>
+              ${priceBadge}
+            </div>
+          </div>
+        </a>`;
+    }).join('');
+  }
+
+  async function toggleFav(e, mentorId, btn) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!getToken()) { window.location.href = 'pages/login.html'; return; }
+    const isFav = _favoriteIds.has(mentorId);
+    try {
+      if (isFav) {
+        await removeFavorite(mentorId);
+        _favoriteIds.delete(mentorId);
+        btn.textContent = '🤍';
+        btn.classList.remove('fav-active');
+        btn.title = 'В избранное';
+      } else {
+        await addFavorite(mentorId);
+        _favoriteIds.add(mentorId);
+        btn.textContent = '❤️';
+        btn.classList.add('fav-active');
+        btn.title = 'Убрать из избранного';
+      }
+    } catch { /* silently ignore auth errors */ }
+  }
+
+  function renderPagination(total, page, limit, pages) {
+    pages = pages || Math.ceil(total / limit);
+    const el = document.getElementById('pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+    let html = `<button onclick="loadMentors(${page-1})" ${page===1?'disabled':''}>←</button>`;
+    const start = Math.max(1, page - 2);
+    const end   = Math.min(pages, page + 2);
+    if (start > 1) html += `<button onclick="loadMentors(1)">1</button>${start>2?'<span style="padding:0 4px">…</span>':''}`;
+    for (let i = start; i <= end; i++) {
+      html += `<button onclick="loadMentors(${i})" class="${i===page?'active':''}">${i}</button>`;
+    }
+    if (end < pages) html += `${end<pages-1?'<span style="padding:0 4px">…</span>':''}<button onclick="loadMentors(${pages})">${pages}</button>`;
+    html += `<button onclick="loadMentors(${page+1})" ${page===pages?'disabled':''}>→</button>`;
+    el.innerHTML = html;
+  }
+
+  function pluralize(n) {
+    if (n % 10 === 1 && n % 100 !== 11) return '';
+    if ([2,3,4].includes(n%10) && ![12,13,14].includes(n%100)) return 'а';
+    return 'ов';
+  }
+
+  /* --- Init --- */
+  (async function() {
+    const startPage = readUrl();
+    if (getToken()) {
+      try {
+        const data = await getFavorites();
+        _favoriteIds = new Set((data.favorites || []).map(f => f.mentor_id));
+      } catch { /* not fatal */ }
+    }
+    loadMentors(startPage);
+  })();
+</script>
+</body>
+</html>

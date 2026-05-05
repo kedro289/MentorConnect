@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Панель администратора — MentorConnect</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .stat-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:16px; margin-bottom:24px; }
+    .stat-card { background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.08); padding:20px; text-align:center; }
+    .stat-card .value { font-size:2rem; font-weight:700; color:var(--primary); }
+    .stat-card .label { font-size:.85rem; color:#767676; margin-top:4px; }
+  </style>
+</head>
+<body>
+
+<header class="site-header"></header>
+
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-avatar">👑</div>
+    <div class="sidebar-name">Администратор</div>
+    <div class="sidebar-role">admin</div>
+    <ul class="sidebar-nav">
+      <li><a href="#stats" class="active" onclick="showSection('stats',this)">📊 Статистика</a></li>
+      <li><a href="#users" onclick="showSection('users',this)">👥 Пользователи</a></li>
+      <li><a href="#reviews" onclick="showSection('reviews',this)">⭐ Отзывы</a></li>
+    </ul>
+  </aside>
+
+  <div class="content-area">
+
+    <!-- Stats -->
+    <div id="section-stats" class="content-section">
+      <h3>Статистика платформы</h3>
+      <div class="stat-cards" id="statCards"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Users -->
+    <div id="section-users" class="content-section" style="display:none">
+      <h3>Пользователи</h3>
+      <div id="usersList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Reviews -->
+    <div id="section-reviews" class="content-section" style="display:none">
+      <h3>Все отзывы</h3>
+      <div id="reviewsList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/header.js"></script>
+<script src="../js/notifSocket.js"></script>
+<script>
+  (function init() {
+    if (!requireAuth()) return;
+    const user = getUser();
+    if (!user || user.role !== 'admin') {
+      window.location.href = 'login.html';
+      return;
+    }
+    loadStats();
+  })();
+
+  function showSection(name, el) {
+    document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+    document.getElementById('section-' + name).style.display = 'block';
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    if (el) el.classList.add('active');
+    if (name === 'stats')   loadStats();
+    if (name === 'users')   loadUsers();
+    if (name === 'reviews') loadAdminReviews();
+    return false;
+  }
+
+  async function loadStats() {
+    const el = document.getElementById('statCards');
+    try {
+      const s = await apiRequest('GET', '/admin/stats');
+      el.innerHTML = [
+        ['Пользователей', s.totalUsers],
+        ['Студентов',     s.totalStudents],
+        ['Менторов',      s.totalMentors],
+        ['Заявок',        s.totalApplications],
+        ['Чатов',         s.totalChats],
+        ['Отзывов',       s.totalReviews],
+      ].map(([label, value]) => `
+        <div class="stat-card">
+          <div class="value">${value}</div>
+          <div class="label">${label}</div>
+        </div>`).join('');
+    } catch (e) {
+      el.innerHTML = '<p style="color:#c0392b">Ошибка загрузки статистики</p>';
+    }
+  }
+
+  async function loadUsers() {
+    const el = document.getElementById('usersList');
+    el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+    try {
+      const data = await apiRequest('GET', '/admin/users');
+      el.innerHTML = `<table class="data-table">
+        <thead><tr><th>Email</th><th>Роль</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
+        <tbody>${data.users.map(u => `
+          <tr>
+            <td>${u.email}</td>
+            <td>${u.role}</td>
+            <td>${u.is_blocked ? '<span class="badge badge-blocked">Заблокирован</span>' : '<span class="badge badge-accepted">Активен</span>'}</td>
+            <td>${formatDate(u.created_at)}</td>
+            <td>
+              ${u.is_blocked
+                ? `<button onclick="unblockUser(${u.id})" style="background:#1e8449;color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer">Разблокировать</button>`
+                : `<button onclick="blockUser(${u.id})" style="background:#c0392b;color:#fff;border:none;padding:5px 12px;border-radius:6px;cursor:pointer">Заблокировать</button>`
+              }
+            </td>
+          </tr>`).join('')}
+        </tbody></table>`;
+    } catch (e) {
+      el.innerHTML = '<p style="color:#c0392b">Ошибка загрузки</p>';
+    }
+  }
+
+  async function blockUser(id) {
+    if (!confirm('Заблокировать пользователя?')) return;
+    try { await apiRequest('PUT', `/admin/users/${id}/block`); loadUsers(); }
+    catch (e) { alert(e.message); }
+  }
+  async function unblockUser(id) {
+    try { await apiRequest('PUT', `/admin/users/${id}/unblock`); loadUsers(); }
+    catch (e) { alert(e.message); }
+  }
+
+  async function loadAdminReviews() {
+    const el = document.getElementById('reviewsList');
+    el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+    try {
+      // Загружаем отзывы для ментора из seed-данных (упрощённо)
+      const pool_res = await apiRequest('GET', '/mentors/search?limit=100');
+      const mentors = pool_res.mentors;
+      if (!mentors.length) { el.innerHTML = '<p>Нет данных</p>'; return; }
+      let allReviews = [];
+      for (const m of mentors) {
+        const r = await apiRequest('GET', `/mentors/${m.id}/reviews`);
+        allReviews = allReviews.concat(r.reviews.map(rv => ({ ...rv, mentorId: m.id })));
+      }
+      if (!allReviews.length) { el.innerHTML = '<p style="color:#767676">Нет отзывов</p>'; return; }
+      el.innerHTML = `<table class="data-table">
+        <thead><tr><th>Студент</th><th>Оценка</th><th>Комментарий</th><th>Дата</th><th></th></tr></thead>
+        <tbody>${allReviews.map(r => `
+          <tr>
+            <td>${r.student_name||r.student_email}</td>
+            <td><span class="stars">${starsHtml(r.rating)}</span></td>
+            <td>${r.comment||'—'}</td>
+            <td>${formatDate(r.created_at)}</td>
+            <td><button onclick="deleteReview(${r.id})" style="background:#c0392b;color:#fff;border:none;padding:5px 10px;border-radius:6px;cursor:pointer">Удалить</button></td>
+          </tr>`).join('')}
+        </tbody></table>`;
+    } catch (e) {
+      el.innerHTML = '<p style="color:#c0392b">Ошибка загрузки</p>';
+    }
+  }
+
+  async function deleteReview(id) {
+    if (!confirm('Удалить отзыв?')) return;
+    try { await apiRequest('DELETE', `/admin/reviews/${id}`); loadAdminReviews(); }
+    catch (e) { alert(e.message); }
+  }
+</script>
+</body>
+</html>

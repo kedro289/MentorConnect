@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кабинет ментора — MentorConnect</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="site-header"></header>
+
+<div class="dashboard-layout">
+  <aside class="sidebar">
+    <div class="sidebar-avatar" id="sidebarAvatar">М</div>
+    <div class="sidebar-name" id="sidebarName">Загрузка...</div>
+    <div class="sidebar-role">Ментор</div>
+    <div id="sidebarRating" style="text-align:center;color:#f5a623;margin-bottom:12px"></div>
+    <ul class="sidebar-nav">
+      <li><a href="#profile" class="active" onclick="showSection('profile',this)">👤 Профиль</a></li>
+      <li><a href="#offers" onclick="showSection('offers',this)">📢 Мои предложения</a></li>
+      <li><a href="#applications" onclick="showSection('applications',this)">📋 Заявки</a></li>
+      <li><a href="#reviews" onclick="showSection('reviews',this)">⭐ Отзывы</a></li>
+      <li><a href="#chats" onclick="showSection('chats',this)">💬 Чаты</a></li>
+    </ul>
+  </aside>
+
+  <div class="content-area">
+
+    <!-- Stats row -->
+    <div id="mentorStatsRow" class="mentor-stats-row" style="display:none">
+      <div class="mentor-stat-card">
+        <div class="stat-val" id="statRating">—</div>
+        <div class="stat-lbl">Средний рейтинг</div>
+      </div>
+      <div class="mentor-stat-card">
+        <div class="stat-val" id="statReviews">—</div>
+        <div class="stat-lbl">Отзывов</div>
+      </div>
+      <div class="mentor-stat-card">
+        <div class="stat-val" id="statOffers">—</div>
+        <div class="stat-lbl">Предложений</div>
+      </div>
+    </div>
+
+    <!-- Profile -->
+    <div id="section-profile" class="content-section">
+      <h3>Мой профиль</h3>
+      <div id="profileView">
+        <table class="data-table" id="profileTable"></table>
+        <br>
+        <button class="btn-primary" style="width:auto;padding:9px 24px" onclick="showEditForm()">Редактировать</button>
+      </div>
+      <div id="profileEdit" style="display:none">
+        <div class="form-group"><label>Полное имя</label><input type="text" id="editName"></div>
+        <div class="form-group"><label>Биография</label><textarea id="editBio" rows="3"></textarea></div>
+        <div class="form-group"><label>Экспертиза (через запятую)</label><input type="text" id="editExpertise"></div>
+        <div class="form-group"><label>Лет опыта</label><input type="number" id="editExpYears" min="0"></div>
+        <div class="form-group"><label>Описание опыта</label><textarea id="editExpText" rows="2"></textarea></div>
+        <div class="form-group"><label>Расписание</label><input type="text" id="editSchedule"></div>
+        <div class="form-group"><label>Тип цены</label>
+          <select id="editPriceType">
+            <option value="free">Бесплатно</option>
+            <option value="paid">Платно</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Цена (₽/час)</label><input type="number" id="editPrice" min="0"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" style="width:auto;padding:9px 24px" onclick="saveProfile()">Сохранить</button>
+          <button class="btn-primary" style="width:auto;padding:9px 24px;background:#767676" onclick="cancelEdit()">Отмена</button>
+        </div>
+        <div id="editAlert" style="display:none;margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- Offers -->
+    <div id="section-offers" class="content-section" style="display:none">
+      <h3>Мои предложения</h3>
+      <button class="btn-primary" style="width:auto;padding:8px 20px;margin-bottom:16px" onclick="showAddOffer()">+ Добавить</button>
+      <div id="addOfferForm" style="display:none;background:#f9f9f9;padding:16px;border-radius:8px;margin-bottom:16px">
+        <div class="form-group"><label>Название</label><input type="text" id="offerTitle"></div>
+        <div class="form-group"><label>Описание</label><textarea id="offerDesc" rows="2"></textarea></div>
+        <div class="form-group"><label>Категория</label><input type="text" id="offerCat"></div>
+        <div class="form-group"><label>Тип цены</label>
+          <select id="offerPriceType"><option value="free">Бесплатно</option><option value="paid">Платно</option></select>
+        </div>
+        <div class="form-group"><label>Цена (₽)</label><input type="number" id="offerPrice" min="0"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" style="width:auto;padding:8px 20px" onclick="addOffer()">Создать</button>
+          <button class="btn-primary" style="width:auto;padding:8px 20px;background:#767676" onclick="hideAddOffer()">Отмена</button>
+        </div>
+      </div>
+      <div id="offersList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Applications -->
+    <div id="section-applications" class="content-section" style="display:none">
+      <h3>Входящие заявки</h3>
+      <div id="applicationsList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Reviews -->
+    <div id="section-reviews" class="content-section" style="display:none">
+      <h3>Отзывы обо мне</h3>
+      <div id="reviewsList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Chats -->
+    <div id="section-chats" class="content-section" style="display:none">
+      <h3>Мои чаты</h3>
+      <div id="chatsList"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script src="../js/header.js"></script>
+<script src="../js/notifSocket.js"></script>
+<script src="../js/dashboard-mentor.js"></script>
+</body>
+</html>
