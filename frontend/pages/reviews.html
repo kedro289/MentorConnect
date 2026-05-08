@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Отзывы — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Summary block ── */
+    .reviews-summary {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:32px;
+      display:flex; gap:40px; align-items:center; flex-wrap:wrap;
+      margin-bottom:32px;
+    }
+    .rating-big { text-align:center; flex-shrink:0; }
+    .rating-big-num { font-family:var(--font-heading); font-size:4rem; font-weight:700; line-height:1; color:var(--color-accent); }
+    .rating-big-stars { display:flex; gap:4px; justify-content:center; margin:8px 0 4px; }
+    .rating-big-count { font-size:.8125rem; color:var(--color-muted); }
+
+    /* ── Distribution bars ── */
+    .dist-bars { flex:1; min-width:200px; display:flex; flex-direction:column; gap:8px; }
+    .dist-row { display:flex; align-items:center; gap:10px; font-size:.8125rem; }
+    .dist-label { width:24px; text-align:right; color:var(--color-muted); flex-shrink:0; }
+    .dist-bar-track { flex:1; height:8px; background:var(--color-surface2); border-radius:999px; overflow:hidden; }
+    .dist-bar-fill {
+      height:100%; border-radius:999px; background:var(--color-accent);
+      transform:scaleX(0); transform-origin:left;
+      transition:transform 700ms cubic-bezier(0.4,0,0.2,1);
+    }
+    .dist-bar-fill.animated { transform:scaleX(1); }
+    .dist-count { width:24px; color:var(--color-muted); flex-shrink:0; text-align:right; }
+
+    /* ── Filter chips ── */
+    .rev-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+    .rev-filter {
+      padding:6px 16px; border-radius:999px; border:1.5px solid var(--color-border);
+      background:transparent; color:var(--color-text); font-family:var(--font-body);
+      font-size:.875rem; cursor:pointer; transition:all var(--transition-fast);
+    }
+    .rev-filter:hover { border-color:var(--color-accent); }
+    .rev-filter.active { border-color:var(--color-accent); background:rgba(205,180,255,.1); color:var(--color-accent); }
+
+    /* ── Review card ── */
+    .review-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:24px; margin-bottom:16px;
+      transition:border-color var(--transition-fast);
+    }
+    .review-card:hover { border-color:rgba(205,180,255,.25); }
+    .review-header { display:flex; gap:14px; align-items:flex-start; margin-bottom:14px; }
+    .review-avatar {
+      width:44px; height:44px; border-radius:50%; flex-shrink:0;
+      background:rgba(205,180,255,.12); border:2px solid var(--color-border);
+      display:flex; align-items:center; justify-content:center;
+      font-family:var(--font-heading); font-weight:700; font-size:.9375rem; color:var(--color-accent);
+    }
+    .review-meta { flex:1; }
+    .review-author { font-weight:700; font-size:.9375rem; margin-bottom:2px; }
+    .review-date   { font-size:.75rem; color:var(--color-muted); }
+    .review-stars  { display:flex; gap:3px; margin:6px 0; }
+    .review-text   { font-size:.9375rem; color:var(--color-muted); line-height:1.7; }
+
+    /* ── Reply ── */
+    .reply-section { overflow:hidden; max-height:0; opacity:0; transition:max-height 350ms ease, opacity 300ms ease; margin-top:14px; }
+    .reply-section.open { max-height:200px; opacity:1; }
+    .reply-box { background:var(--color-surface2); border-radius:var(--radius-md); padding:14px; }
+    .reply-label { font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--color-muted); margin-bottom:6px; }
+    .reply-posted { font-size:.875rem; color:var(--color-muted); line-height:1.65; }
+    .reply-actions { display:flex; gap:8px; margin-top:10px; }
+  </style>
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<section class="section">
+  <div class="container" style="max-width:800px">
+
+    <div style="margin-bottom:28px" class="reveal">
+      <h1 style="font-size:clamp(1.5rem,3vw,2rem)">Отзывы</h1>
+    </div>
+
+    <!-- Summary -->
+    <div class="reviews-summary reveal">
+      <div class="rating-big">
+        <div class="rating-big-num" id="avgNum">4.8</div>
+        <div class="rating-big-stars" id="avgStars"></div>
+        <div class="rating-big-count" id="avgCount">0 отзывов</div>
+      </div>
+      <div class="dist-bars" id="distBars"></div>
+    </div>
+
+    <!-- Filter -->
+    <div class="rev-filters reveal" id="revFilters">
+      <button class="rev-filter active" data-rating="">Все</button>
+      <button class="rev-filter" data-rating="5">★★★★★</button>
+      <button class="rev-filter" data-rating="4">★★★★</button>
+      <button class="rev-filter" data-rating="3">★★★</button>
+      <button class="rev-filter" data-rating="2">★★</button>
+      <button class="rev-filter" data-rating="1">★</button>
+    </div>
+
+    <div id="reviewsList"></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+const MOCK_REVIEWS = [
+  { id:1, author:'Иван С.',   initials:'ИС', rating:5, date:'5 мая 2026',   text:'Алексей — отличный ментор! Объяснил сложные концепции просто. Уже через 2 сессии я уверенно пишу хуки.', reply:null },
+  { id:2, author:'Мария Л.',  initials:'МЛ', rating:5, date:'28 апр 2026',  text:'Очень структурированный подход. Составили план обучения, разобрали мои ошибки. Рекомендую!', reply:'Спасибо, Мария! Было приятно работать вместе. Удачи на новом месте!' },
+  { id:3, author:'Дмитрий К.',initials:'ДК', rating:4, date:'20 апр 2026',  text:'Хороший ментор, знает материал. Иногда объяснения слишком быстрые. В целом доволен.', reply:null },
+  { id:4, author:'Анна Р.',   initials:'АР', rating:5, date:'14 апр 2026',  text:'Лучший ментор на платформе! Человечный, терпеливый, всегда отвечает на вопросы в чате.', reply:null },
+  { id:5, author:'Кирилл Н.', initials:'КН', rating:3, date:'5 апр 2026',   text:'Базово, но мне не хватило практики. Теория была хорошей.', reply:'Кирилл, спасибо за честный отзыв. Учту на будущих сессиях — добавлю больше практических задач.' },
+];
+
+let filterRating = '';
+
+function stars(n, size=16) {
+  return Array.from({length:5}, (_,i) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="${i<n?'var(--color-accent)':'none'}" stroke="var(--color-accent)" stroke-width="1.5" ${i>=n?'opacity="0.3"':''}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`).join('');
+}
+
+function renderSummary() {
+  const total = MOCK_REVIEWS.length;
+  const avg = total ? (MOCK_REVIEWS.reduce((s,r)=>s+r.rating,0)/total).toFixed(1) : '—';
+  document.getElementById('avgNum').textContent = avg;
+  document.getElementById('avgStars').innerHTML = stars(Math.round(+avg), 18);
+  document.getElementById('avgCount').textContent = `${total} ${total===1?'отзыв':total<5?'отзыва':'отзывов'}`;
+
+  const counts = [5,4,3,2,1].map(r => ({ r, n: MOCK_REVIEWS.filter(x=>x.rating===r).length }));
+  document.getElementById('distBars').innerHTML = counts.map(({r,n}) => {
+    const pct = total ? n/total : 0;
+    return `<div class="dist-row">
+      <span class="dist-label">${r}★</span>
+      <div class="dist-bar-track"><div class="dist-bar-fill" style="width:${pct*100}%"></div></div>
+      <span class="dist-count">${n}</span>
+    </div>`;
+  }).join('');
+  setTimeout(() => document.querySelectorAll('.dist-bar-fill').forEach(b=>b.classList.add('animated')), 100);
+}
+
+function renderReviews() {
+  const list = filterRating ? MOCK_REVIEWS.filter(r=>r.rating===+filterRating) : MOCK_REVIEWS;
+  const el = document.getElementById('reviewsList');
+  if (!list.length) {
+    el.innerHTML = `<div style="text-align:center;padding:48px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);color:var(--color-muted)">В этой категории нет отзывов</div>`;
+    return;
+  }
+  el.innerHTML = list.map((r,i) => `
+    <div class="review-card reveal" id="rv-${r.id}" style="transition-delay:${i*50}ms">
+      <div class="review-header">
+        <div class="review-avatar">${r.initials}</div>
+        <div class="review-meta">
+          <div class="review-author">${r.author}</div>
+          <div class="review-stars">${stars(r.rating,15)}</div>
+          <div class="review-date">${r.date}</div>
+        </div>
+      </div>
+      <div class="review-text">${r.text}</div>
+      ${r.reply ? `<div class="reply-section open"><div class="reply-box"><div class="reply-label">Ваш ответ</div><div class="reply-posted">${r.reply}</div></div></div>` : `
+      <div class="reply-section" id="reply-${r.id}">
+        <textarea class="form-textarea" id="reply-text-${r.id}" placeholder="Напишите ответ студенту..." rows="2" style="margin-bottom:8px" maxlength="400"></textarea>
+        <div class="reply-actions">
+          <button class="btn btn-primary btn-sm" onclick="submitReply(${r.id})">Ответить</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeReply(${r.id})">Отмена</button>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="reply-open-${r.id}" onclick="openReply(${r.id})" style="margin-top:10px">Ответить</button>`}
+    </div>`).join('');
+  if (typeof initScrollReveal === 'function') initScrollReveal();
+}
+
+/* ── Reply (задача-067) ── */
+function openReply(id) {
+  const section = document.getElementById(`reply-${id}`);
+  const btn     = document.getElementById(`reply-open-${id}`);
+  if (section) section.classList.add('open');
+  if (btn) btn.style.display = 'none';
+  setTimeout(() => { const t = document.getElementById(`reply-text-${id}`); if(t) t.focus(); }, 50);
+}
+function closeReply(id) {
+  const section = document.getElementById(`reply-${id}`);
+  const btn     = document.getElementById(`reply-open-${id}`);
+  if (section) section.classList.remove('open');
+  if (btn) btn.style.display = '';
+}
+async function submitReply(id) {
+  const text = document.getElementById(`reply-text-${id}`).value.trim();
+  if (!text) return;
+  try { await apiRequest('POST', `/reviews/${id}/reply`, { text }); } catch { /* ignore */ }
+  const r = MOCK_REVIEWS.find(x=>x.id===id);
+  if (r) r.reply = text;
+  renderReviews();
+}
+
+/* ── Filter ── */
+document.getElementById('revFilters').addEventListener('click', e => {
+  const btn = e.target.closest('.rev-filter');
+  if (!btn) return;
+  document.querySelectorAll('.rev-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  filterRating = btn.dataset.rating;
+  renderReviews();
+});
+
+renderSummary();
+renderReviews();
+</script>
+</body>
+</html>

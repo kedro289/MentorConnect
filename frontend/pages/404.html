@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .notfound-wrap {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .notfound-number {
+      font-family: var(--font-heading);
+      font-size: clamp(6rem, 20vw, 14rem);
+      font-weight: 800;
+      color: var(--color-accent);
+      opacity: 0.12;
+      line-height: 1;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      user-select: none;
+    }
+    .notfound-content {
+      position: relative;
+      z-index: 1;
+    }
+    .notfound-emoji { font-size: 4rem; margin-bottom: 24px; animation: float 3s ease-in-out infinite; display: block; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-12px); }
+    }
+  </style>
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<div class="notfound-wrap">
+  <div class="notfound-number">404</div>
+  <div class="notfound-content hero-anim">
+    <span class="notfound-emoji">🔭</span>
+    <h1 style="font-size:clamp(1.75rem,4vw,2.5rem);margin-bottom:16px">Страница не найдена</h1>
+    <p style="color:var(--color-muted);max-width:400px;margin:0 auto 32px;line-height:1.7">
+      Похоже, эта страница ушла на менторскую сессию и не вернулась. Давайте найдём то, что вам нужно.
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="../index.html" class="btn btn-primary btn-md">На главную</a>
+      <a href="../pages/faq.html" class="btn btn-outline btn-md">Помощь</a>
+    </div>
+  </div>
+</div>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+</body>
+</html>

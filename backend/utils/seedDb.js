@@ -162,6 +162,6 @@ async function seed() {
 }
 
 seed().catch(err => {
-  console.error('❌ Ошибка seed:', err.message);
+  console.error('❌ Ошибка seed:', err);
   process.exit(1);
 });

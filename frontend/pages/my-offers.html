@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои предложения — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Offer card ── */
+    .offer-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:24px;
+      transition:transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .offer-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-glow); border-color:rgba(205,180,255,.25); }
+    .offer-card-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+    .offer-title { font-family:var(--font-heading); font-size:1.0625rem; font-weight:700; flex:1; }
+    .offer-desc { font-size:.875rem; color:var(--color-muted); line-height:1.65; }
+    .offer-tags { display:flex; flex-wrap:wrap; gap:6px; }
+    .offer-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding-top:12px; border-top:1px solid var(--color-border); }
+    .offer-price { font-family:var(--font-heading); font-weight:700; font-size:1rem; color:var(--color-accent); }
+    .offer-actions { display:flex; gap:8px; }
+    .offer-toggle { display:flex; align-items:center; gap:8px; font-size:.8125rem; color:var(--color-muted); }
+    .toggle-switch {
+      position:relative; width:36px; height:20px; cursor:pointer;
+      background:var(--color-surface2); border:1px solid var(--color-border); border-radius:999px;
+      transition:background var(--transition-fast), border-color var(--transition-fast);
+    }
+    .toggle-switch.on { background:rgba(205,180,255,.2); border-color:rgba(205,180,255,.4); }
+    .toggle-switch::after {
+      content:''; position:absolute; top:2px; left:2px;
+      width:14px; height:14px; border-radius:50%;
+      background:var(--color-muted); transition:transform var(--transition-fast), background var(--transition-fast);
+    }
+    .toggle-switch.on::after { transform:translateX(16px); background:var(--color-accent); }
+
+    /* ── Sticky create btn on mobile ── */
+    .sticky-create {
+      position:fixed; bottom:24px; right:24px; z-index:50;
+      display:none;
+    }
+    @media(max-width:600px){ .sticky-create{display:flex;} .top-create{display:none;} }
+
+    /* ── Modal ── */
+    .modal-backdrop {
+      position:fixed; inset:0; background:rgba(0,0,0,.72);
+      backdrop-filter:blur(4px); z-index:var(--z-modal);
+      display:flex; align-items:center; justify-content:center;
+      padding:20px; opacity:0; visibility:hidden;
+      transition:opacity 300ms, visibility 300ms;
+    }
+    .modal-backdrop.open { opacity:1; visibility:visible; }
+    .modal-box {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); width:100%; max-width:520px;
+      max-height:90dvh; overflow-y:auto;
+      transform:scale(.92); transition:transform 300ms cubic-bezier(0.4,0,0.2,1);
+    }
+    .modal-backdrop.open .modal-box { transform:scale(1); }
+    .modal-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:24px 24px 0;
+    }
+    .modal-title { font-family:var(--font-heading); font-size:1.125rem; font-weight:700; }
+    .modal-close {
+      width:34px; height:34px; border-radius:50%; border:1.5px solid var(--color-border);
+      background:none; color:var(--color-muted); cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:all var(--transition-fast);
+    }
+    .modal-close:hover { border-color:var(--color-accent); color:var(--color-accent); }
+    .modal-body { padding:24px; display:flex; flex-direction:column; gap:16px; }
+
+    /* ── Chips input ── */
+    .chips-input { display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; background:var(--color-surface2); border:1px solid var(--color-border); border-radius:var(--radius-sm); cursor:text; transition:border-color var(--transition-fast); }
+    .chips-input:focus-within { border-color:var(--color-accent); }
+    .chip-item { display:flex; align-items:center; gap:4px; background:rgba(205,180,255,.12); border:1px solid rgba(205,180,255,.2); border-radius:999px; padding:2px 10px; font-size:.8125rem; color:var(--color-accent); }
+    .chip-remove { background:none; border:none; cursor:pointer; padding:0; color:var(--color-muted); line-height:1; font-size:1rem; }
+    .chip-remove:hover { color:var(--color-error); }
+    .chip-text-input { background:none; border:none; outline:none; color:var(--color-text); font-family:var(--font-body); font-size:.875rem; min-width:80px; flex:1; }
+    .chip-text-input::placeholder { color:var(--color-muted); }
+
+    /* ── Empty ── */
+    .offers-empty {
+      text-align:center; padding:72px 24px;
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);
+      animation:emptyScaleUp 400ms cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes emptyScaleUp {
+      from { opacity:0; transform:scale(0.85); }
+      to   { opacity:1; transform:scale(1); }
+    }
+  </style>
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<section class="section">
+  <div class="container" style="max-width:840px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px" class="reveal">
+      <div>
+        <h1 style="font-size:clamp(1.5rem,3vw,2rem)">Мои предложения</h1>
+        <p style="color:var(--color-muted);margin-top:4px;font-size:.9375rem" id="offersCountLabel">Загрузка...</p>
+      </div>
+      <button class="btn btn-primary btn-md top-create" onclick="openModal()">+ Создать предложение</button>
+    </div>
+
+    <div id="offersList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px"></div>
+  </div>
+</section>
+
+<button class="btn btn-primary btn-md sticky-create" onclick="openModal()" style="box-shadow:var(--shadow-glow-lg)">+</button>
+
+<!-- Offer modal (задача 065) -->
+<div class="modal-backdrop" id="offerModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Создать предложение</div>
+      <button class="modal-close" onclick="closeModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Название предложения *</label>
+        <input class="form-input" id="offerName" placeholder="Например: Code Review сессия" maxlength="80">
+        <div class="field-error" id="errName">Введите название</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Описание</label>
+        <textarea class="form-textarea" id="offerDesc" placeholder="Опишите, что входит в предложение..." rows="3" maxlength="400"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Цена за час (₽) *</label>
+        <input class="form-input" id="offerPrice" type="number" min="0" max="99999" placeholder="0 — бесплатно">
+        <div class="field-error" id="errPrice">Введите корректную цену</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Специализации (Enter — добавить)</label>
+        <div class="chips-input" id="chipsWrap" onclick="document.getElementById('chipInput').focus()">
+          <input class="chip-text-input" id="chipInput" placeholder="JavaScript, React...">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:4px">
+        <button class="btn btn-ghost btn-md" onclick="closeModal()">Отмена</button>
+        <button class="btn btn-primary btn-md" id="saveOfferBtn" onclick="saveOffer()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+let MOCK_OFFERS = [
+  { id:1, title:'Пробная сессия (бесплатно)', desc:'30-минутное знакомство. Обсудим ваши цели и составим план.', price:0,   tags:['Знакомство'],            active:true  },
+  { id:2, title:'Code Review',                 desc:'Разберём ваш код, найдём слабые места и дам рекомендации.', price:1500, tags:['Frontend','Code'],        active:true  },
+  { id:3, title:'Менторство (месяц)',           desc:'4 встречи, домашние задания, обратная связь в чате.',      price:8000, tags:['Менторство','Frontend'],  active:false },
+];
+let editingId = null;
+let chips = [];
+
+function renderOffers() {
+  const el = document.getElementById('offersList');
+  const active = MOCK_OFFERS.filter(o=>o.active).length;
+  document.getElementById('offersCountLabel').textContent = `Всего: ${MOCK_OFFERS.length} · Активных: ${active}`;
+  if (!MOCK_OFFERS.length) {
+    el.innerHTML = `<div class="offers-empty" style="grid-column:1/-1">
+      <svg width="72" height="72" viewBox="0 0 72 72" fill="none" style="margin:0 auto 20px;display:block">
+        <rect x="8" y="16" width="56" height="44" rx="8" fill="rgba(205,180,255,0.06)" stroke="rgba(205,180,255,0.25)" stroke-width="1.5"/>
+        <line x1="20" y1="30" x2="52" y2="30" stroke="rgba(205,180,255,0.4)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="20" y1="40" x2="44" y2="40" stroke="rgba(205,180,255,0.25)" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="54" cy="20" r="10" fill="var(--color-surface2)" stroke="rgba(205,180,255,0.3)" stroke-width="1.5"/>
+        <path d="M54 15v5l3 2" stroke="rgba(205,180,255,0.5)" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <div style="font-family:var(--font-heading);font-size:1.25rem;font-weight:700;margin-bottom:8px">Предложений пока нет</div>
+      <p style="color:var(--color-muted);margin-bottom:24px">Создайте первое предложение, чтобы студенты могли выбрать формат работы с вами.</p>
+      <button class="btn btn-primary btn-md" onclick="openModal()">Создать предложение</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML = MOCK_OFFERS.map((o,i) => `
+    <div class="offer-card reveal" style="transition-delay:${i*60}ms">
+      <div class="offer-card-header">
+        <div class="offer-title">${o.title}</div>
+        <span class="badge ${o.active ? 'badge-accepted' : 'badge-offline'}">${o.active ? 'Активно' : 'Скрыто'}</span>
+      </div>
+      <div class="offer-desc">${o.desc}</div>
+      <div class="offer-tags">${o.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <div class="offer-footer">
+        <div class="offer-price">${o.price === 0 ? 'Бесплатно' : o.price.toLocaleString('ru') + ' ₽/час'}</div>
+        <div class="offer-actions">
+          <div class="offer-toggle">
+            <span class="toggle-switch ${o.active?'on':''}" onclick="toggleOffer(${o.id},this)" title="${o.active?'Деактивировать':'Активировать'}"></span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="editOffer(${o.id})">Изменить</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteOffer(${o.id})">Удалить</button>
+        </div>
+      </div>
+    </div>`).join('');
+  if (typeof initScrollReveal === 'function') initScrollReveal();
+}
+
+/* ── Toggle active ── */
+function toggleOffer(id, el) {
+  const o = MOCK_OFFERS.find(x=>x.id===id);
+  if (!o) return;
+  o.active = !o.active;
+  el.classList.toggle('on', o.active);
+  el.closest('.offer-card').querySelector('.badge').className = `badge ${o.active?'badge-accepted':'badge-offline'}`;
+  el.closest('.offer-card').querySelector('.badge').textContent = o.active?'Активно':'Скрыто';
+  document.getElementById('offersCountLabel').textContent = `Всего: ${MOCK_OFFERS.length} · Активных: ${MOCK_OFFERS.filter(x=>x.active).length}`;
+}
+
+/* ── Delete ── */
+function deleteOffer(id) {
+  const idx = MOCK_OFFERS.findIndex(x=>x.id===id);
+  if (idx === -1) return;
+  const card = document.getElementById('offersList').children[idx];
+  if (card) {
+    card.style.height = card.offsetHeight + 'px';
+    card.style.overflow = 'hidden';
+    card.offsetHeight;
+    card.style.transition = 'height 350ms ease, opacity 350ms ease, margin 350ms ease';
+    card.style.height = '0'; card.style.opacity = '0'; card.style.marginBottom = '0';
+    card.addEventListener('transitionend', e => {
+      if (e.propertyName !== 'height') return;
+      MOCK_OFFERS.splice(idx, 1);
+      renderOffers();
+    }, { once:true });
+  } else {
+    MOCK_OFFERS.splice(idx, 1);
+    renderOffers();
+  }
+}
+
+/* ── Modal open/close ── */
+function openModal(id = null) {
+  editingId = id;
+  chips = [];
+  document.getElementById('chipInput').value = '';
+  document.getElementById('chipsWrap').querySelectorAll('.chip-item').forEach(c=>c.remove());
+  const o = id ? MOCK_OFFERS.find(x=>x.id===id) : null;
+  document.getElementById('modalTitle').textContent = id ? 'Редактировать предложение' : 'Создать предложение';
+  document.getElementById('offerName').value  = o ? o.title : '';
+  document.getElementById('offerDesc').value  = o ? o.desc  : '';
+  document.getElementById('offerPrice').value = o ? o.price : '';
+  if (o) o.tags.forEach(t => addChip(t));
+  document.querySelectorAll('.field-error').forEach(e=>e.classList.remove('visible'));
+  document.getElementById('offerModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('offerName').focus(), 100);
+}
+function closeModal() {
+  document.getElementById('offerModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('offerModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('offerModal')) closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ── Chips ── */
+function addChip(text) {
+  const val = text.trim();
+  if (!val || chips.includes(val)) return;
+  chips.push(val);
+  const chip = document.createElement('span');
+  chip.className = 'chip-item';
+  chip.innerHTML = `${val}<button class="chip-remove" onclick="removeChip('${val}',this)">×</button>`;
+  document.getElementById('chipsWrap').insertBefore(chip, document.getElementById('chipInput'));
+}
+function removeChip(val, btn) {
+  chips = chips.filter(c=>c!==val);
+  btn.closest('.chip-item').remove();
+}
+document.getElementById('chipInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addChip(e.target.value); e.target.value = ''; }
+});
+
+function editOffer(id) { openModal(id); }
+
+/* ── Save ── */
+async function saveOffer() {
+  const name  = document.getElementById('offerName').value.trim();
+  const price = document.getElementById('offerPrice').value;
+  let valid = true;
+  if (!name) { document.getElementById('errName').classList.add('visible'); valid = false; } else { document.getElementById('errName').classList.remove('visible'); }
+  if (price === '' || isNaN(+price) || +price < 0) { document.getElementById('errPrice').classList.add('visible'); valid = false; } else { document.getElementById('errPrice').classList.remove('visible'); }
+  if (!valid) return;
+
+  const btn = document.getElementById('saveOfferBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+
+  const data = { title: name, desc: document.getElementById('offerDesc').value.trim(), price: +price, tags: [...chips], active: true };
+  try {
+    if (editingId) {
+      await apiRequest('PUT', `/offers/${editingId}`, data);
+      const o = MOCK_OFFERS.find(x=>x.id===editingId);
+      if (o) Object.assign(o, data);
+    } else {
+      await apiRequest('POST', '/offers', data);
+      MOCK_OFFERS.push({ id: Date.now(), ...data });
+    }
+  } catch { if (editingId) { const o = MOCK_OFFERS.find(x=>x.id===editingId); if(o) Object.assign(o,data); } else { MOCK_OFFERS.push({id:Date.now(),...data}); } }
+
+  closeModal();
+  renderOffers();
+  btn.disabled = false; btn.textContent = 'Сохранить';
+}
+
+renderOffers();
+</script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои студенты — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .student-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:20px;
+      display:flex; gap:16px; align-items:flex-start;
+      transition:transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+    }
+    .student-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-glow); border-color:rgba(205,180,255,.3); }
+    .student-avatar {
+      width:52px; height:52px; border-radius:50%;
+      background:rgba(205,180,255,.12); border:2px solid var(--color-border);
+      display:flex; align-items:center; justify-content:center;
+      font-family:var(--font-heading); font-weight:700; font-size:1rem;
+      color:var(--color-accent); flex-shrink:0;
+    }
+    .student-info { flex:1; min-width:0; }
+    .student-name { font-weight:700; font-size:1rem; margin-bottom:4px; }
+    .student-goal { font-size:.8125rem; color:var(--color-muted); margin-bottom:10px; line-height:1.5; }
+    .student-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+    .student-tag { padding:3px 10px; background:rgba(205,180,255,.08); border:1px solid rgba(205,180,255,.15); border-radius:999px; font-size:.6875rem; color:var(--color-muted); }
+    .student-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .student-since { font-size:.75rem; color:var(--color-muted); margin-top:8px; }
+    .section-tabs { display:flex; gap:4px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-md); padding:4px; margin-bottom:28px; }
+    .section-tab { flex:1; padding:8px; border:none; background:none; border-radius:var(--radius-sm); color:var(--color-muted); font-family:var(--font-body); font-size:.875rem; cursor:pointer; transition:all var(--transition-fast); }
+    .section-tab.active { background:var(--color-accent); color:#1A1A1A; font-weight:600; }
+    .section-tab:hover:not(.active) { color:var(--color-text); }
+    .empty-state { text-align:center; padding:60px 24px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); }
+    .empty-icon { font-size:3.5rem; margin-bottom:12px; display:block; }
+    .pending-row { display:flex; gap:16px; align-items:flex-start; padding:20px; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); margin-bottom:12px; }
+    .pending-meta { flex:1; }
+    .pending-name { font-weight:700; margin-bottom:4px; }
+    .pending-msg { font-size:.875rem; color:var(--color-muted); line-height:1.6; margin-bottom:10px; }
+    .pending-actions { display:flex; gap:8px; }
+  </style>
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<section class="section">
+  <div class="container" style="max-width:860px">
+    <div style="margin-bottom:28px" class="reveal">
+      <h1 style="font-size:clamp(1.5rem,3vw,2rem)">Мои студенты</h1>
+      <p style="color:var(--color-muted);margin-top:4px" id="statsLabel">Загрузка...</p>
+    </div>
+
+    <div class="section-tabs reveal" id="tabsRow">
+      <button class="section-tab active" data-tab="active" onclick="switchTab('active',this)">Активные</button>
+      <button class="section-tab" data-tab="pending" onclick="switchTab('pending',this)">Заявки (<span id="pendingCount">0</span>)</button>
+      <button class="section-tab" data-tab="all" onclick="switchTab('all',this)">Все</button>
+    </div>
+
+    <div id="studentsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px"></div>
+    <div id="pendingList" style="display:none"></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+const MOCK_STUDENTS = [
+  { id:1, name:'Иван Студентов',   initials:'ИС', goal:'Хочу стать fullstack-разработчиком', tags:['JavaScript','React','Node.js'], since:'2 мая 2026',   status:'active'  },
+  { id:2, name:'Мария Учебникова', initials:'МУ', goal:'Изучаю машинное обучение',           tags:['Python','ML','Pandas'],          since:'20 апр 2026', status:'active'  },
+  { id:3, name:'Кирилл Новый',     initials:'КН', goal:'Хочу изучить React с нуля',          tags:['JavaScript'],                   since:'7 мая 2026',  status:'pending', message:'Мне 22 года, занимался вёрсткой, хочу перейти в React-разработку.' },
+  { id:4, name:'Диана Светлова',   initials:'ДС', goal:'Подготовка к собеседованию',         tags:['TypeScript','Алгоритмы'],       since:'5 мая 2026',  status:'pending', message:'Проходила курсы, есть базовые знания. Хочу подготовиться к техническому собеседованию.' },
+];
+
+let activeTab = 'active';
+
+function switchTab(tab, btn) {
+  activeTab = tab;
+  document.querySelectorAll('.section-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTab();
+}
+
+function renderTab() {
+  const grid = document.getElementById('studentsGrid');
+  const pending = document.getElementById('pendingList');
+  const pendingStudents = MOCK_STUDENTS.filter(s => s.status === 'pending');
+  const activeStudents  = MOCK_STUDENTS.filter(s => s.status === 'active');
+
+  document.getElementById('pendingCount').textContent = pendingStudents.length;
+  document.getElementById('statsLabel').textContent = `Активных: ${activeStudents.length} · Заявок: ${pendingStudents.length}`;
+
+  if (activeTab === 'pending') {
+    grid.style.display = 'none';
+    pending.style.display = 'block';
+    renderPending(pendingStudents, pending);
+    return;
+  }
+  pending.style.display = 'none';
+  grid.style.display = 'grid';
+  const list = activeTab === 'all' ? MOCK_STUDENTS.filter(s => s.status === 'active') : activeStudents;
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">👥</span><div style="font-family:var(--font-heading);font-size:1.125rem;font-weight:700;margin-bottom:8px">Студентов пока нет</div><p style="color:var(--color-muted)">Когда студент примет вашу заявку, он появится здесь.</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map((s,i) => `
+    <div class="student-card reveal" style="transition-delay:${i*60}ms">
+      <div class="student-avatar">${s.initials}</div>
+      <div class="student-info">
+        <div class="student-name">${s.name}</div>
+        <div class="student-goal">${s.goal}</div>
+        <div class="student-tags">${s.tags.map(t=>`<span class="student-tag">${t}</span>`).join('')}</div>
+        <div class="student-actions">
+          <a href="chat.html" class="btn btn-outline btn-sm">Написать</a>
+          <button class="btn btn-ghost btn-sm">Профиль</button>
+        </div>
+        <div class="student-since">Студент с ${s.since}</div>
+      </div>
+    </div>`).join('');
+  if (typeof initScrollReveal === 'function') initScrollReveal();
+}
+
+function renderPending(list, container) {
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state"><span class="empty-icon">📭</span><div style="font-family:var(--font-heading);font-size:1.125rem;font-weight:700;margin-bottom:8px">Новых заявок нет</div><p style="color:var(--color-muted)">Новые заявки от студентов появятся здесь.</p></div>`;
+    return;
+  }
+  container.innerHTML = list.map((s,i) => `
+    <div class="pending-row reveal" style="transition-delay:${i*60}ms">
+      <div class="student-avatar">${s.initials}</div>
+      <div class="pending-meta">
+        <div class="pending-name">${s.name}</div>
+        <div class="pending-msg">${s.message}</div>
+        <div class="student-tags" style="margin-bottom:10px">${s.tags.map(t=>`<span class="student-tag">${t}</span>`).join('')}</div>
+        <div class="pending-actions">
+          <button class="btn btn-primary btn-sm" onclick="acceptStudent(${s.id},this)">Принять</button>
+          <button class="btn btn-danger btn-sm" onclick="rejectStudent(${s.id},this)">Отклонить</button>
+        </div>
+      </div>
+      <span style="font-size:.75rem;color:var(--color-muted);flex-shrink:0">📅 ${s.since}</span>
+    </div>`).join('');
+  if (typeof initScrollReveal === 'function') initScrollReveal();
+}
+
+async function acceptStudent(id, btn) {
+  btn.disabled = true; btn.textContent = '...';
+  try { await apiRequest('PUT', `/applications/${id}/accept`); } catch { /* ignore */ }
+  const s = MOCK_STUDENTS.find(x => x.id === id);
+  if (s) { s.status = 'active'; }
+  renderTab();
+}
+async function rejectStudent(id, btn) {
+  btn.disabled = true; btn.textContent = '...';
+  try { await apiRequest('PUT', `/applications/${id}/reject`); } catch { /* ignore */ }
+  MOCK_STUDENTS.splice(MOCK_STUDENTS.findIndex(x=>x.id===id), 1);
+  renderTab();
+}
+
+renderTab();
+</script>
+</body>
+</html>

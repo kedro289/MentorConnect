@@ -3,15 +3,15 @@ version: '3.9'
 services:
   # База данных PostgreSQL в изолированном контейнере
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: mentorconnect_db
     restart: unless-stopped
     environment:
       POSTGRES_DB: mentorconnect
       POSTGRES_USER: mentor_user
-      POSTGRES_PASSWORD: mentor_pass_2024
+      POSTGRES_PASSWORD: 12345
     ports:
-      - "5433:5432"        # порт 5433 снаружи чтобы не конфликтовать с локальным PostgreSQL
+      - "5433:5433"        # порт 5433 снаружи чтобы не конфликтовать с локальным PostgreSQL
     volumes:
       - postgres_data:/var/lib/postgresql/data   # данные сохраняются между перезапусками
     healthcheck:
@@ -22,7 +22,7 @@ services:
 
   # Приложение Node.js
   app:
-    build: .
+    build: ./backend
     container_name: mentorconnect_app
     restart: unless-stopped
     depends_on:
@@ -37,7 +37,7 @@ services:
     environment:
       PORT: 3000
       DB_HOST: postgres            # имя сервиса в docker-compose сети
-      DB_PORT: 5432
+      DB_PORT: 5433
       DB_NAME: mentorconnect
       DB_USER: mentor_user
       DB_PASSWORD: mentor_pass_2024

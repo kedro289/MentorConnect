@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Менторы — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Catalog layout ── */
+    .catalog-wrap {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .catalog-wrap { grid-template-columns: 1fr; }
+    }
+
+    /* ── Search bar ── */
+    .search-wrap {
+      position: relative;
+      margin-bottom: 24px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-muted);
+      pointer-events: none;
+      display: flex;
+    }
+    .search-input {
+      width: 100%;
+      padding: 14px 16px 14px 48px;
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(205,180,255,0.15), 0 0 20px rgba(205,180,255,0.08);
+    }
+    .search-clear {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--color-muted);
+      display: none;
+      padding: 4px;
+      line-height: 0;
+      transition: color var(--transition-fast);
+    }
+    .search-clear:hover { color: var(--color-text); }
+    .search-clear.visible { display: flex; }
+
+    /* ── Filter sidebar ── */
+    .filter-sidebar {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      position: sticky;
+      top: calc(var(--header-height) + 24px);
+    }
+    .filter-title {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .filter-reset {
+      font-family: var(--font-body);
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--color-accent);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+    .filter-reset.visible { opacity: 1; }
+    .filter-group {
+      margin-bottom: 24px;
+    }
+    .filter-group-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-muted);
+      margin-bottom: 12px;
+    }
+    .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .filter-chip {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .filter-chip:hover { border-color: var(--color-accent); color: var(--color-accent); }
+    .filter-chip.active { border-color: var(--color-accent); background: rgba(205,180,255,0.12); color: var(--color-accent); }
+
+    /* ── Price range slider ── */
+    .range-wrap { padding: 4px 0; }
+    .range-labels { display: flex; justify-content: space-between; font-size: 0.8125rem; color: var(--color-muted); margin-top: 8px; }
+    input[type=range] {
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: var(--color-border);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(205,180,255,0.5);
+      transition: transform var(--transition-fast);
+    }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+    input[type=range]::-moz-range-thumb {
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    /* ── Sort select ── */
+    .sort-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .sort-label { font-size: 0.875rem; color: var(--color-muted); white-space: nowrap; }
+    .sort-select {
+      flex: 1;
+      padding: 8px 12px;
+      background: var(--color-surface);
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      outline: none;
+      cursor: pointer;
+      transition: border-color var(--transition-fast);
+    }
+    .sort-select:focus { border-color: var(--color-accent); }
+
+    /* ── Results header ── */
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .results-count { font-size: 0.875rem; color: var(--color-muted); }
+    .results-count span { color: var(--color-text); font-weight: 600; }
+
+    /* ── Mentor cards grid ── */
+    .mentors-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── MentorCard ── */
+    .mentor-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      color: var(--color-text);
+    }
+    .mentor-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-glow);
+      border-color: rgba(205,180,255,0.3);
+    }
+    .mentor-card-header {
+      padding: 20px 20px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .mentor-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(205,180,255,0.12);
+      border: 2px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--color-accent);
+      flex-shrink: 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .mentor-avatar img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      position: absolute; inset: 0;
+    }
+    .mentor-avatar-status {
+      position: absolute;
+      bottom: 2px; right: 2px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--color-surface);
+    }
+    .mentor-avatar-status.online { background: var(--color-success); }
+    .mentor-avatar-status.offline { background: var(--color-muted); }
+    .mentor-info { flex: 1; min-width: 0; }
+    .mentor-name {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mentor-specialty {
+      font-size: 0.8125rem;
+      color: var(--color-accent);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mentor-card-body { padding: 14px 20px; }
+    .mentor-bio {
+      font-size: 0.8125rem;
+      color: var(--color-muted);
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .mentor-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+    .mentor-tag {
+      padding: 3px 10px;
+      background: rgba(205,180,255,0.08);
+      border: 1px solid rgba(205,180,255,0.15);
+      border-radius: 999px;
+      font-size: 0.6875rem;
+      color: var(--color-muted);
+    }
+    .mentor-card-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .mentor-rating { display: flex; align-items: center; gap: 6px; }
+    .mentor-stars { display: flex; gap: 2px; }
+    .mentor-stars svg { width: 13px; height: 13px; }
+    .mentor-rating-val { font-weight: 600; font-size: 0.875rem; }
+    .mentor-rating-cnt { font-size: 0.75rem; color: var(--color-muted); }
+    .mentor-price { font-weight: 700; font-size: 0.9375rem; }
+    .mentor-price .price-free { color: var(--color-success); }
+    .mentor-btn {
+      padding: 7px 18px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-accent);
+      background: transparent;
+      color: var(--color-accent);
+      font-family: var(--font-body);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .mentor-btn:hover { background: rgba(205,180,255,0.12); }
+
+    /* ── Skeleton ── */
+    .skeleton { animation: shimmer 1.5s infinite; }
+    .skeleton-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      padding: 20px;
+    }
+    .skeleton-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--color-surface2);
+    }
+    .skeleton-line {
+      height: 14px;
+      border-radius: 4px;
+      background: var(--color-surface2);
+    }
+    .skeleton-line.short { width: 40%; }
+    .skeleton-line.medium { width: 65%; }
+    .skeleton-line.full { width: 100%; }
+
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    .skeleton, .skeleton-avatar, .skeleton-line {
+      background: linear-gradient(90deg, var(--color-surface2) 25%, rgba(205,180,255,0.04) 50%, var(--color-surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    /* ── Mobile filter drawer ── */
+    .filter-toggle-btn {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: border-color var(--transition-fast);
+    }
+    .filter-toggle-btn:hover { border-color: var(--color-accent); }
+    .filter-badge-count {
+      background: var(--color-accent);
+      color: #1A1A1A;
+      border-radius: 999px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      padding: 1px 7px;
+      display: none;
+    }
+    .filter-badge-count.visible { display: inline-block; }
+    @media (max-width: 1024px) {
+      .filter-toggle-btn { display: flex; }
+      .filter-sidebar {
+        position: fixed;
+        top: 0; left: 0;
+        height: 100dvh;
+        width: min(320px, 90vw);
+        z-index: var(--z-modal);
+        border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .filter-sidebar.open { transform: translateX(0); }
+      .filter-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: calc(var(--z-modal) - 1);
+        display: none;
+        backdrop-filter: blur(2px);
+      }
+      .filter-backdrop.open { display: block; }
+    }
+
+    /* ── Pagination ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 48px;
+    }
+    .page-btn {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .page-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+    .page-btn.active { background: rgba(205,180,255,0.15); border-color: var(--color-accent); color: var(--color-accent); font-weight: 600; }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-dots { color: var(--color-muted); padding: 0 4px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 24px;
+    }
+    .empty-icon { font-size: 4rem; margin-bottom: 16px; }
+    .empty-title { font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; }
+    .empty-text { color: var(--color-muted); font-size: 0.9375rem; }
+
+    /* ── Favorite btn ── */
+    .fav-btn {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1.5px solid var(--color-border);
+      background: var(--color-surface2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--color-muted);
+      transition: all var(--transition-fast);
+      flex-shrink: 0;
+    }
+    .fav-btn:hover, .fav-btn.active { border-color: #ff6b8a; color: #ff6b8a; }
+    .fav-btn.active { background: rgba(255,107,138,0.08); }
+  </style>
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+<div class="filter-backdrop" id="filterBackdrop"></div>
+
+<section class="section">
+  <div class="container">
+
+    <!-- Search -->
+    <div class="section-header reveal" style="margin-bottom:32px">
+      <p class="section-label">Каталог</p>
+      <h2>Найди своего ментора</h2>
+    </div>
+
+    <div class="search-wrap reveal">
+      <span class="search-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </span>
+      <input type="text" class="search-input" id="searchInput" placeholder="Поиск по имени, специализации, навыкам..." autocomplete="off">
+      <button class="search-clear" id="searchClear" aria-label="Очистить поиск">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="catalog-wrap">
+
+      <!-- Filter sidebar -->
+      <aside class="filter-sidebar" id="filterSidebar">
+        <div class="filter-title">
+          Фильтры
+          <button class="filter-reset" id="filterReset">Сбросить</button>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group-label">Специализация</div>
+          <div class="filter-chips" id="catChips">
+            <button class="filter-chip active" data-val="">Все</button>
+            <button class="filter-chip" data-val="Frontend">Frontend</button>
+            <button class="filter-chip" data-val="Backend">Backend</button>
+            <button class="filter-chip" data-val="Mobile">Mobile</button>
+            <button class="filter-chip" data-val="Data Science">Data Science</button>
+            <button class="filter-chip" data-val="Design">Design</button>
+            <button class="filter-chip" data-val="DevOps">DevOps</button>
+            <button class="filter-chip" data-val="Менеджмент">Менеджмент</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group-label">Тип занятий</div>
+          <div class="filter-chips" id="priceTypeChips">
+            <button class="filter-chip active" data-val="">Любой</button>
+            <button class="filter-chip" data-val="free">Бесплатно</button>
+            <button class="filter-chip" data-val="paid">Платно</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group-label">Минимальный рейтинг</div>
+          <div class="filter-chips" id="ratingChips">
+            <button class="filter-chip active" data-val="">Любой</button>
+            <button class="filter-chip" data-val="4">4+ ★</button>
+            <button class="filter-chip" data-val="4.5">4.5+ ★</button>
+            <button class="filter-chip" data-val="4.8">4.8+ ★</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group-label">Опыт (лет)</div>
+          <div class="filter-chips" id="expChips">
+            <button class="filter-chip active" data-val="">Любой</button>
+            <button class="filter-chip" data-val="1">1+</button>
+            <button class="filter-chip" data-val="3">3+</button>
+            <button class="filter-chip" data-val="5">5+</button>
+            <button class="filter-chip" data-val="10">10+</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <div class="filter-group-label">Макс. цена: <span id="priceLabel">5000 ₽/ч</span></div>
+          <div class="range-wrap">
+            <input type="range" id="priceRange" min="0" max="5000" step="100" value="5000">
+            <div class="range-labels"><span>0 ₽</span><span>5 000 ₽</span></div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-md" style="width:100%;margin-top:8px" id="applyFiltersBtn">Применить</button>
+      </aside>
+
+      <!-- Main area -->
+      <div>
+        <div class="results-header">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <button class="filter-toggle-btn" id="filterToggleBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+              Фильтры
+              <span class="filter-badge-count" id="filterBadgeCount">0</span>
+            </button>
+            <p class="results-count" id="resultsCount">Загрузка...</p>
+          </div>
+          <div class="sort-wrap" style="margin:0">
+            <span class="sort-label">Сортировка:</span>
+            <select class="sort-select" id="sortSelect">
+              <option value="rating">По рейтингу</option>
+              <option value="reviews">По отзывам</option>
+              <option value="price_asc">Цена: по возрастанию</option>
+              <option value="price_desc">Цена: по убыванию</option>
+              <option value="new">Новые</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mentors-grid" id="mentorsGrid">
+          <!-- skeleton initial -->
+        </div>
+
+        <div class="pagination" id="pagination"></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   MOCK DATA (used when API fails / dev mode)
+═══════════════════════════════════════════════════ */
+const MOCK_MENTORS = [
+  { id:1,  name:'Алексей Смирнов',  specialty:'Frontend',    bio:'10 лет опыта в React, Vue. Веду команды до 15 человек. Помогу выстроить архитектуру фронтенда.',    tags:['React','TypeScript','CSS'],         rating:4.9, reviews:87,  price:2000, priceType:'paid',  online:true  },
+  { id:2,  name:'Мария Козлова',    specialty:'Data Science', bio:'PhD по ML. Работаю в Yandex Research. Объясняю сложное просто.',                                     tags:['Python','ML','TensorFlow'],         rating:4.8, reviews:64,  price:3000, priceType:'paid',  online:false },
+  { id:3,  name:'Дмитрий Петров',   specialty:'Backend',     bio:'Senior Go/Rust developer. Архитектура микросервисов, highload системы.',                               tags:['Go','Rust','PostgreSQL'],           rating:4.7, reviews:112, price:2500, priceType:'paid',  online:true  },
+  { id:4,  name:'Анна Иванова',     specialty:'Design',      bio:'Product designer в Figma. 8 лет создаю интерфейсы для B2B и B2C продуктов.',                           tags:['Figma','UX','UI'],                  rating:4.9, reviews:93,  price:0,    priceType:'free',  online:true  },
+  { id:5,  name:'Игорь Сидоров',    specialty:'DevOps',      bio:'DevOps с опытом в AWS, GCP. Kubernetes, CI/CD, monitoring. Помогу автоматизировать всё.',              tags:['Kubernetes','Docker','AWS'],        rating:4.6, reviews:45,  price:1800, priceType:'paid',  online:false },
+  { id:6,  name:'Елена Новикова',   specialty:'Mobile',      bio:'iOS developer (Swift/SwiftUI). Публиковала 12 приложений в App Store.',                                tags:['Swift','iOS','SwiftUI'],            rating:4.8, reviews:58,  price:2200, priceType:'paid',  online:true  },
+  { id:7,  name:'Павел Захаров',    specialty:'Backend',     bio:'Java/Spring Boot. Опыт в банковской и финтех сфере. Тимлид.',                                          tags:['Java','Spring','Kafka'],            rating:4.5, reviews:39,  price:2000, priceType:'paid',  online:false },
+  { id:8,  name:'Ольга Морозова',   specialty:'Frontend',    bio:'Angular/RxJS специалист. Помогаю с архитектурой SPA, state management.',                               tags:['Angular','RxJS','TypeScript'],      rating:4.7, reviews:71,  price:0,    priceType:'free',  online:true  },
+  { id:9,  name:'Сергей Лебедев',   specialty:'Менеджмент', bio:'Agile-коуч, PMP. Вывел 20+ проектов. Помогаю тимлидам и PM.',                                          tags:['Agile','Scrum','Leadership'],       rating:4.8, reviews:34,  price:1500, priceType:'paid',  online:false },
+  { id:10, name:'Татьяна Соловьёва',specialty:'Data Science', bio:'Data Analyst в Сбере. Python, SQL, Tableau. Помогу войти в Data Science с нуля.',                    tags:['Python','SQL','Tableau'],           rating:4.6, reviews:82,  price:1200, priceType:'paid',  online:true  },
+  { id:11, name:'Никита Волков',    specialty:'Mobile',      bio:'Android developer (Kotlin/Jetpack Compose). 7 лет опыта, 15+ приложений в Google Play.',              tags:['Kotlin','Android','Compose'],      rating:4.7, reviews:49,  price:1800, priceType:'paid',  online:false },
+  { id:12, name:'Ксения Орлова',    specialty:'Design',      bio:'Motion/Brand designer. Adobe suite, After Effects. Выпускник Британской Высшей Школы Дизайна.',       tags:['Figma','Illustrator','Motion'],     rating:4.9, reviews:27,  price:0,    priceType:'free',  online:true  },
+];
+
+/* ═══════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════ */
+let state = {
+  keyword: '',
+  category: '',
+  priceType: '',
+  minRating: '',
+  minExperience: '',
+  maxPrice: 5000,
+  sort: 'rating',
+  page: 1,
+  limit: 9,
+  total: 0,
+  loading: false,
+};
+
+let favorites = new Set(JSON.parse(localStorage.getItem('mc_favs') || '[]'));
+
+function saveFavs() {
+  localStorage.setItem('mc_favs', JSON.stringify([...favorites]));
+}
+
+/* ═══════════════════════════════════════════════════
+   SEARCH & DEBOUNCE
+═══════════════════════════════════════════════════ */
+let debounceTimer = null;
+function debounce(fn, delay) {
+  return (...args) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => fn(...args), delay);
+  };
+}
+
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+
+searchInput.addEventListener('input', debounce(e => {
+  state.keyword = e.target.value.trim();
+  state.page = 1;
+  searchClear.classList.toggle('visible', state.keyword.length > 0);
+  loadMentors();
+}, 350));
+
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  state.keyword = '';
+  state.page = 1;
+  searchClear.classList.remove('visible');
+  searchInput.focus();
+  loadMentors();
+});
+
+/* ═══════════════════════════════════════════════════
+   FILTER CHIPS
+═══════════════════════════════════════════════════ */
+function initChips(containerId, stateKey) {
+  document.getElementById(containerId).addEventListener('click', e => {
+    const chip = e.target.closest('.filter-chip');
+    if (!chip) return;
+    document.querySelectorAll(`#${containerId} .filter-chip`).forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    state[stateKey] = chip.dataset.val;
+  });
+}
+initChips('catChips', 'category');
+initChips('priceTypeChips', 'priceType');
+initChips('ratingChips', 'minRating');
+initChips('expChips', 'minExperience');
+
+/* ── Price slider ── */
+const priceRange = document.getElementById('priceRange');
+const priceLabel = document.getElementById('priceLabel');
+priceRange.addEventListener('input', () => {
+  state.maxPrice = parseInt(priceRange.value);
+  priceLabel.textContent = state.maxPrice === 5000 ? '5000 ₽/ч' : `${state.maxPrice.toLocaleString('ru')} ₽/ч`;
+});
+
+/* ── Apply / Reset ── */
+document.getElementById('applyFiltersBtn').addEventListener('click', () => {
+  state.page = 1;
+  closeMobileFilter();
+  loadMentors();
+  updateFilterBadge();
+});
+
+document.getElementById('filterReset').addEventListener('click', () => {
+  resetFilters();
+  loadMentors();
+});
+
+function resetFilters() {
+  state.category = ''; state.priceType = ''; state.minRating = '';
+  state.minExperience = ''; state.maxPrice = 5000; state.page = 1;
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.val === '');
+  });
+  priceRange.value = 5000;
+  priceLabel.textContent = '5000 ₽/ч';
+  updateFilterBadge();
+}
+
+function updateFilterBadge() {
+  const count = [state.category, state.priceType, state.minRating, state.minExperience]
+    .filter(Boolean).length + (state.maxPrice < 5000 ? 1 : 0);
+  const badge = document.getElementById('filterBadgeCount');
+  badge.textContent = count;
+  badge.classList.toggle('visible', count > 0);
+  document.getElementById('filterReset').classList.toggle('visible', count > 0);
+}
+
+/* ── Sort ── */
+document.getElementById('sortSelect').addEventListener('change', e => {
+  state.sort = e.target.value;
+  state.page = 1;
+  loadMentors();
+});
+
+/* ═══════════════════════════════════════════════════
+   MOBILE FILTER DRAWER
+═══════════════════════════════════════════════════ */
+const filterSidebar = document.getElementById('filterSidebar');
+const filterBackdrop = document.getElementById('filterBackdrop');
+
+document.getElementById('filterToggleBtn').addEventListener('click', openMobileFilter);
+filterBackdrop.addEventListener('click', closeMobileFilter);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobileFilter(); });
+
+function openMobileFilter() {
+  filterSidebar.classList.add('open');
+  filterBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeMobileFilter() {
+  filterSidebar.classList.remove('open');
+  filterBackdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ═══════════════════════════════════════════════════
+   SKELETON
+═══════════════════════════════════════════════════ */
+function renderSkeletons(n = 9) {
+  const grid = document.getElementById('mentorsGrid');
+  grid.innerHTML = Array.from({ length: n }, () => `
+    <div class="skeleton-card">
+      <div style="display:flex;gap:14px;margin-bottom:16px">
+        <div class="skeleton-avatar skeleton"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;padding-top:4px">
+          <div class="skeleton-line medium skeleton"></div>
+          <div class="skeleton-line short skeleton"></div>
+        </div>
+      </div>
+      <div class="skeleton-line full skeleton" style="margin-bottom:8px"></div>
+      <div class="skeleton-line medium skeleton" style="margin-bottom:16px"></div>
+      <div style="display:flex;gap:6px;margin-bottom:16px">
+        ${[50,60,45].map(w => `<div class="skeleton-line skeleton" style="width:${w}px;height:22px;border-radius:999px"></div>`).join('')}
+      </div>
+      <div style="border-top:1px solid var(--color-border);padding-top:14px;display:flex;justify-content:space-between">
+        <div class="skeleton-line skeleton" style="width:80px;height:14px"></div>
+        <div class="skeleton-line skeleton" style="width:60px;height:32px;border-radius:var(--radius-sm)"></div>
+      </div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   RENDER MENTOR CARD
+═══════════════════════════════════════════════════ */
+function starsHtml(rating) {
+  return Array.from({ length: 5 }, (_, i) => {
+    const filled = i < Math.round(rating);
+    return `<svg viewBox="0 0 24 24" fill="${filled ? 'var(--color-accent)' : 'none'}" stroke="var(--color-accent)" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  }).join('');
+}
+
+function mentorCardHtml(m, idx) {
+  const initials = m.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+  const isFav = favorites.has(m.id);
+  const priceHtml = m.priceType === 'free'
+    ? `<span class="price-free">Бесплатно</span>`
+    : `${m.price.toLocaleString('ru')} ₽/ч`;
+
+  return `
+    <a class="mentor-card reveal" href="mentor-profile.html?id=${m.id}" style="transition-delay:${idx * 50}ms">
+      <div class="mentor-card-header">
+        <div class="mentor-avatar">
+          ${initials}
+          <span class="mentor-avatar-status ${m.online ? 'online' : 'offline'}"></span>
+        </div>
+        <div class="mentor-info">
+          <div class="mentor-name">${m.name}</div>
+          <div class="mentor-specialty">${m.specialty}</div>
+        </div>
+        <button class="fav-btn ${isFav ? 'active' : ''}" data-id="${m.id}" title="${isFav ? 'Удалить из избранного' : 'В избранное'}" onclick="event.preventDefault();toggleFav(${m.id},this)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="${isFav ? '#ff6b8a' : 'none'}" stroke="${isFav ? '#ff6b8a' : 'currentColor'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+      </div>
+      <div class="mentor-card-body">
+        <p class="mentor-bio">${m.bio}</p>
+        <div class="mentor-tags">${m.tags.map(t => `<span class="mentor-tag">${t}</span>`).join('')}</div>
+      </div>
+      <div class="mentor-card-footer">
+        <div class="mentor-rating">
+          <div class="mentor-stars">${starsHtml(m.rating)}</div>
+          <span class="mentor-rating-val">${m.rating.toFixed(1)}</span>
+          <span class="mentor-rating-cnt">(${m.reviews})</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="mentor-price">${priceHtml}</div>
+        </div>
+      </div>
+    </a>`;
+}
+
+function toggleFav(id, btn) {
+  if (favorites.has(id)) {
+    favorites.delete(id);
+    btn.classList.remove('active');
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  } else {
+    favorites.add(id);
+    btn.classList.add('active');
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="#ff6b8a" stroke="#ff6b8a" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+    btn.style.transform = 'scale(1.3)';
+    setTimeout(() => btn.style.transform = '', 200);
+  }
+  saveFavs();
+}
+
+/* ═══════════════════════════════════════════════════
+   FILTER & PAGINATE (local mock)
+═══════════════════════════════════════════════════ */
+function applyMockFilters(data) {
+  let res = [...data];
+  if (state.keyword) {
+    const kw = state.keyword.toLowerCase();
+    res = res.filter(m =>
+      m.name.toLowerCase().includes(kw) ||
+      m.specialty.toLowerCase().includes(kw) ||
+      m.tags.some(t => t.toLowerCase().includes(kw)) ||
+      m.bio.toLowerCase().includes(kw)
+    );
+  }
+  if (state.category)     res = res.filter(m => m.specialty === state.category);
+  if (state.priceType)    res = res.filter(m => m.priceType === state.priceType);
+  if (state.minRating)    res = res.filter(m => m.rating >= parseFloat(state.minRating));
+  if (state.maxPrice < 5000) res = res.filter(m => m.priceType === 'free' || m.price <= state.maxPrice);
+
+  const sortFns = {
+    rating:     (a,b) => b.rating - a.rating,
+    reviews:    (a,b) => b.reviews - a.reviews,
+    price_asc:  (a,b) => a.price - b.price,
+    price_desc: (a,b) => b.price - a.price,
+    new:        (a,b) => b.id - a.id,
+  };
+  res.sort(sortFns[state.sort] || sortFns.rating);
+  return res;
+}
+
+/* ═══════════════════════════════════════════════════
+   PAGINATION
+═══════════════════════════════════════════════════ */
+function renderPagination(total) {
+  const pages = Math.ceil(total / state.limit);
+  const el = document.getElementById('pagination');
+  if (pages <= 1) { el.innerHTML = ''; return; }
+
+  const cur = state.page;
+  let html = '';
+
+  html += `<button class="page-btn" ${cur===1?'disabled':''} onclick="goPage(${cur-1})">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+  </button>`;
+
+  const range = pagRange(cur, pages);
+  let prev = null;
+  for (const p of range) {
+    if (prev !== null && p - prev > 1) html += `<span class="page-dots">…</span>`;
+    html += `<button class="page-btn ${p===cur?'active':''}" onclick="goPage(${p})">${p}</button>`;
+    prev = p;
+  }
+
+  html += `<button class="page-btn" ${cur===pages?'disabled':''} onclick="goPage(${cur+1})">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+  </button>`;
+
+  el.innerHTML = html;
+}
+
+function pagRange(cur, total) {
+  const delta = 2;
+  const range = [];
+  for (let i = Math.max(1, cur-delta); i <= Math.min(total, cur+delta); i++) range.push(i);
+  if (range[0] > 1) range.unshift(1);
+  if (range[range.length-1] < total) range.push(total);
+  return range;
+}
+
+function goPage(p) {
+  state.page = p;
+  loadMentors();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════════════════════════════════════════════
+   LOAD MENTORS
+═══════════════════════════════════════════════════ */
+async function loadMentors() {
+  if (state.loading) return;
+  state.loading = true;
+  renderSkeletons();
+
+  try {
+    let mentors, total;
+
+    try {
+      const data = await searchMentors({
+        keyword: state.keyword,
+        category: state.category,
+        minRating: state.minRating,
+        priceType: state.priceType,
+        maxPrice: state.maxPrice < 5000 ? state.maxPrice : '',
+        minExperience: state.minExperience,
+        sort: state.sort,
+        page: state.page,
+        limit: state.limit,
+      });
+      mentors = data.mentors || data;
+      total   = data.total   || mentors.length;
+    } catch {
+      // Fallback to mock data
+      const filtered = applyMockFilters(MOCK_MENTORS);
+      total   = filtered.length;
+      const start = (state.page - 1) * state.limit;
+      mentors = filtered.slice(start, start + state.limit);
+    }
+
+    state.total = total;
+    renderMentors(mentors, total);
+  } finally {
+    state.loading = false;
+  }
+}
+
+function renderMentors(list, total) {
+  const grid = document.getElementById('mentorsGrid');
+  const countEl = document.getElementById('resultsCount');
+  countEl.innerHTML = `Найдено: <span>${total}</span> менторов`;
+
+  if (!list.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">🔍</div>
+        <div class="empty-title">Ничего не найдено</div>
+        <p class="empty-text">Попробуйте изменить параметры поиска или <button class="btn btn-ghost btn-sm" onclick="resetAll()" style="display:inline;padding:0;text-decoration:underline;color:var(--color-accent)">сбросить фильтры</button></p>
+      </div>`;
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  grid.innerHTML = list.map((m, i) => mentorCardHtml(m, i)).join('');
+  renderPagination(total);
+
+  if (typeof initScrollReveal === 'function') initScrollReveal();
+}
+
+function resetAll() {
+  searchInput.value = '';
+  state.keyword = '';
+  searchClear.classList.remove('visible');
+  resetFilters();
+  loadMentors();
+}
+
+/* ── Init ── */
+loadMentors();
+</script>
+</body>
+</html>

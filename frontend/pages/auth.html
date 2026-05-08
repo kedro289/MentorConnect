@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход / Регистрация — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { min-height: 100vh; display: flex; flex-direction: column; }
+    .auth-wrap {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: calc(100vh - 68px);
+    }
+    .auth-brand {
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 64px 56px;
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-brand-blob {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--color-accent);
+      filter: blur(80px);
+      opacity: 0.06;
+    }
+    .auth-brand-blob-1 { width:400px;height:400px;top:-100px;right:-100px; }
+    .auth-brand-blob-2 { width:300px;height:300px;bottom:-80px;left:-80px; }
+    .auth-brand-content { position: relative; z-index: 1; }
+    .auth-brand h2 { font-size: 2rem; margin-bottom: 16px; }
+    .auth-brand p  { color: var(--color-muted); line-height: 1.7; max-width: 360px; margin-bottom: 40px; }
+    .auth-features { display: flex; flex-direction: column; gap: 16px; }
+    .auth-feature  { display: flex; align-items: center; gap: 14px; }
+    .auth-feature-icon {
+      width: 40px; height: 40px;
+      border-radius: var(--radius-sm);
+      background: rgba(205,180,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-accent);
+      flex-shrink: 0;
+    }
+    .auth-feature span { font-size: 0.9375rem; color: var(--color-muted); }
+
+    .auth-form-side {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 40px;
+      overflow-y: auto;
+    }
+    .auth-form-inner { width: 100%; max-width: 420px; }
+
+    /* tabs */
+    .auth-tabs { display: flex; gap: 4px; padding: 4px; background: var(--color-surface2); border-radius: var(--radius-sm); margin-bottom: 32px; position: relative; }
+    .auth-tab-pill {
+      position: absolute;
+      top: 4px; left: 4px;
+      height: calc(100% - 8px);
+      background: var(--color-accent);
+      border-radius: calc(var(--radius-sm) - 2px);
+      z-index: 0;
+      transition: transform 300ms ease, width 300ms ease;
+      pointer-events: none;
+    }
+    .auth-tab-btn {
+      position: relative; z-index: 1;
+      flex: 1; padding: 10px;
+      font-size: 0.9375rem; font-weight: 500;
+      color: var(--color-muted);
+      border-radius: calc(var(--radius-sm) - 2px);
+      transition: color 300ms ease;
+      font-family: var(--font-body);
+    }
+    .auth-tab-btn.active { color: var(--color-bg); }
+
+    /* role cards */
+    .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+    .role-card {
+      padding: 20px 16px;
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      text-align: center;
+    }
+    .role-card:hover { border-color: rgba(205,180,255,0.4); }
+    .role-card.selected {
+      border-color: var(--color-accent);
+      background: rgba(205,180,255,0.06);
+      transform: scale(1.02);
+    }
+    .role-card-icon { font-size: 2rem; margin-bottom: 8px; }
+    .role-card h4 { font-size: 0.9375rem; font-weight: 600; margin-bottom: 4px; }
+    .role-card p  { font-size: 0.8125rem; color: var(--color-muted); }
+
+    /* password toggle */
+    .pw-wrap { position: relative; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--color-muted); cursor: pointer; transition: color var(--transition-fast);
+      display: flex; align-items: center;
+    }
+    .pw-toggle:hover { color: var(--color-accent); }
+
+    @media (max-width: 768px) {
+      .auth-wrap { grid-template-columns: 1fr; }
+      .auth-brand { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<div class="auth-wrap">
+  <!-- Левая панель -->
+  <div class="auth-brand">
+    <div class="auth-brand-blob auth-brand-blob-1"></div>
+    <div class="auth-brand-blob auth-brand-blob-2"></div>
+    <div class="auth-brand-content">
+      <a href="../index.html" class="logo" style="display:inline-block;margin-bottom:32px;font-size:1.5rem">Mentor<span>Connect</span></a>
+      <h2>Начни расти вместе с лучшими</h2>
+      <p>Присоединяйся к тысячам студентов и менторов, которые уже изменили свои карьеры с помощью MentorConnect.</p>
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+          </div>
+          <span>500+ проверенных менторов в каталоге</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+          </div>
+          <span>Прямое общение без посредников</span>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/></svg>
+          </div>
+          <span>Безопасно и без скрытых условий</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Правая панель (форма) -->
+  <div class="auth-form-side">
+    <div class="auth-form-inner">
+      <!-- Табы -->
+      <div class="auth-tabs" id="authTabs">
+        <div class="auth-tab-pill" id="authTabPill"></div>
+        <button class="auth-tab-btn active" id="tabLogin" onclick="switchTab('login')">Вход</button>
+        <button class="auth-tab-btn" id="tabRegister" onclick="switchTab('register')">Регистрация</button>
+      </div>
+
+      <!-- ФОРМА ВХОДА -->
+      <form id="loginForm" onsubmit="doLogin(event)" novalidate>
+        <h2 style="margin-bottom:6px">С возвращением</h2>
+        <p style="color:var(--color-muted);margin-bottom:28px;font-size:0.9375rem">Войдите в свой аккаунт</p>
+
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="loginEmail" placeholder="you@example.com" required>
+          <span class="field-error" id="loginEmailErr"></span>
+        </div>
+        <div class="form-group" style="margin-bottom:24px">
+          <label class="form-label">Пароль</label>
+          <div class="pw-wrap">
+            <input type="password" class="form-input" id="loginPassword" placeholder="Ваш пароль" required style="padding-right:44px">
+            <span class="pw-toggle" onclick="togglePw('loginPassword',this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+          </div>
+          <span class="field-error" id="loginPasswordErr"></span>
+        </div>
+
+        <div id="loginApiError" style="display:none;padding:12px 16px;background:rgba(252,165,165,0.1);border:1px solid rgba(252,165,165,0.25);border-radius:var(--radius-sm);color:var(--color-error);font-size:0.875rem;margin-bottom:16px"></div>
+
+        <button type="submit" class="btn btn-primary btn-md" style="width:100%" id="loginBtn">
+          <span id="loginBtnText">Войти</span>
+          <span id="loginSpinner" class="spinner" style="display:none"></span>
+        </button>
+      </form>
+
+      <!-- ФОРМА РЕГИСТРАЦИИ -->
+      <form id="registerForm" style="display:none" onsubmit="doRegister(event)" novalidate>
+        <h2 style="margin-bottom:6px">Создать аккаунт</h2>
+        <p style="color:var(--color-muted);margin-bottom:28px;font-size:0.9375rem">Присоединяйся к MentorConnect</p>
+
+        <!-- Выбор роли (задача 040) -->
+        <div class="role-cards" id="roleCards">
+          <div class="role-card selected" data-role="student" onclick="selectRole('student')">
+            <div class="role-card-icon">📚</div>
+            <h4>Студент</h4>
+            <p>Ищу ментора</p>
+          </div>
+          <div class="role-card" data-role="mentor" onclick="selectRole('mentor')">
+            <div class="role-card-icon">🎓</div>
+            <h4>Ментор</h4>
+            <p>Хочу обучать</p>
+          </div>
+        </div>
+        <input type="hidden" id="regRole" value="student">
+
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="regEmail" placeholder="you@example.com" required>
+          <span class="field-error" id="regEmailErr"></span>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Пароль</label>
+          <div class="pw-wrap">
+            <input type="password" class="form-input" id="regPassword" placeholder="Минимум 6 символов" required style="padding-right:44px">
+            <span class="pw-toggle" onclick="togglePw('regPassword',this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+          </div>
+          <span class="field-error" id="regPasswordErr"></span>
+        </div>
+
+        <div id="regApiError" style="display:none;padding:12px 16px;background:rgba(252,165,165,0.1);border:1px solid rgba(252,165,165,0.25);border-radius:var(--radius-sm);color:var(--color-error);font-size:0.875rem;margin-bottom:16px"></div>
+
+        <button type="submit" class="btn btn-primary btn-md" style="width:100%" id="regBtn">
+          <span id="regBtnText">Создать аккаунт</span>
+          <span id="regSpinner" class="spinner" style="display:none"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+/* --- redirect if already logged in --- */
+redirectIfAuth && redirectIfAuth();
+
+/* --- Tab pill positioning --- */
+function positionPill(btn) {
+  const tabs = document.getElementById('authTabs');
+  const pill = document.getElementById('authTabPill');
+  if (!pill || !btn || !tabs) return;
+  const tabsRect = tabs.getBoundingClientRect();
+  const btnRect  = btn.getBoundingClientRect();
+  pill.style.width = btnRect.width + 'px';
+  pill.style.transform = `translateX(${btnRect.left - tabsRect.left - 4}px)`;
+}
+
+function switchTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('loginForm').style.display    = isLogin ? '' : 'none';
+  document.getElementById('registerForm').style.display = isLogin ? 'none' : '';
+  document.getElementById('tabLogin').classList.toggle('active', isLogin);
+  document.getElementById('tabRegister').classList.toggle('active', !isLogin);
+  positionPill(isLogin ? document.getElementById('tabLogin') : document.getElementById('tabRegister'));
+}
+
+/* --- URL params --- */
+const params = new URLSearchParams(location.search);
+if (params.get('mode') === 'register') switchTab('register');
+if (params.get('role')) { selectRole(params.get('role')); }
+
+setTimeout(() => positionPill(document.querySelector('.auth-tab-btn.active')), 50);
+
+/* --- Role selection (задача 040) --- */
+function selectRole(role) {
+  document.getElementById('regRole').value = role;
+  document.querySelectorAll('.role-card').forEach(c => c.classList.toggle('selected', c.dataset.role === role));
+}
+
+/* --- Password toggle --- */
+function togglePw(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isText = input.type === 'text';
+  input.type = isText ? 'password' : 'text';
+  btn.innerHTML = isText
+    ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>`
+    : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>`;
+}
+
+/* --- Inline validation (задача 041) --- */
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.toggle('visible', !!msg);
+  const input = el.previousElementSibling?.querySelector('input') || el.previousElementSibling;
+  if (input && input.tagName === 'INPUT') input.classList.toggle('invalid', !!msg);
+}
+
+function validateEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+function validatePassword(v) { return v.length >= 6; }
+
+/* --- Login (задача 042: spinner + toast) --- */
+async function doLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPassword').value;
+  let ok = true;
+  showErr('loginEmailErr',    !email ? 'Введите email' : !validateEmail(email) ? 'Некорректный email' : '');
+  showErr('loginPasswordErr', !pw    ? 'Введите пароль' : '');
+  if (!email || !validateEmail(email) || !pw) return;
+
+  const btn  = document.getElementById('loginBtn');
+  const txt  = document.getElementById('loginBtnText');
+  const spin = document.getElementById('loginSpinner');
+  btn.disabled=true; txt.style.display='none'; spin.style.display='inline-block';
+  document.getElementById('loginApiError').style.display='none';
+
+  try {
+    const data = await apiRequest('POST', '/auth/login', { email, password: pw });
+    setToken(data.token); setUser(data.user);
+    txt.textContent='✓ Добро пожаловать!'; txt.style.display='inline';
+    spin.style.display='none';
+    setTimeout(() => {
+      const dash = data.user.role==='mentor' ? '../pages/mentor-dashboard.html' : '../pages/student-dashboard.html';
+      window.location.href = dash;
+    }, 700);
+  } catch(err) {
+    btn.disabled=false; txt.style.display='inline'; spin.style.display='none';
+    const errBox = document.getElementById('loginApiError');
+    errBox.textContent = err.message || 'Ошибка входа';
+    errBox.style.display='block';
+  }
+}
+
+/* --- Register --- */
+async function doRegister(e) {
+  e.preventDefault();
+  const email = document.getElementById('regEmail').value.trim();
+  const pw    = document.getElementById('regPassword').value;
+  const role  = document.getElementById('regRole').value;
+  showErr('regEmailErr',    !email ? 'Введите email' : !validateEmail(email) ? 'Некорректный email' : '');
+  showErr('regPasswordErr', !pw ? 'Введите пароль' : !validatePassword(pw) ? 'Минимум 6 символов' : '');
+  if (!email || !validateEmail(email) || !validatePassword(pw)) return;
+
+  const btn  = document.getElementById('regBtn');
+  const txt  = document.getElementById('regBtnText');
+  const spin = document.getElementById('regSpinner');
+  btn.disabled=true; txt.style.display='none'; spin.style.display='inline-block';
+  document.getElementById('regApiError').style.display='none';
+
+  try {
+    const data = await apiRequest('POST', '/auth/register', { email, password: pw, role });
+    setToken(data.token); setUser(data.user);
+    txt.textContent='✓ Аккаунт создан!'; txt.style.display='inline';
+    spin.style.display='none';
+    setTimeout(() => {
+      window.location.href = role==='mentor' ? '../pages/mentor-dashboard.html' : '../pages/student-dashboard.html';
+    }, 700);
+  } catch(err) {
+    btn.disabled=false; txt.style.display='inline'; spin.style.display='none';
+    const errBox = document.getElementById('regApiError');
+    errBox.textContent = err.message || 'Ошибка регистрации';
+    errBox.style.display='block';
+  }
+}
+</script>
+</body>
+</html>

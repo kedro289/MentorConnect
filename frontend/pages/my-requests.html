@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои заявки — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .req-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
+    .req-filter {
+      padding:6px 16px; border-radius:999px;
+      border:1.5px solid var(--color-border); background:transparent;
+      color:var(--color-text); font-family:var(--font-body); font-size:.875rem;
+      cursor:pointer; transition:all var(--transition-fast);
+    }
+    .req-filter:hover { border-color:var(--color-accent); }
+    .req-filter.active { border-color:var(--color-accent); background:rgba(205,180,255,.1); color:var(--color-accent); }
+
+    /* ── Request card ── */
+    .req-card {
+      background:var(--color-surface);
+      border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);
+      overflow:hidden;
+      margin-bottom:16px;
+      transition:transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+    }
+    .req-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-glow); border-color:rgba(205,180,255,.25); }
+    .req-card-header {
+      display:flex; align-items:flex-start; gap:16px;
+      padding:20px 20px 16px; border-bottom:1px solid var(--color-border);
+    }
+    .req-avatar {
+      width:52px; height:52px; border-radius:50%;
+      background:rgba(205,180,255,.12); border:2px solid var(--color-border);
+      display:flex; align-items:center; justify-content:center;
+      font-family:var(--font-heading); font-weight:700; font-size:1.0625rem;
+      color:var(--color-accent); flex-shrink:0;
+    }
+    .req-meta { flex:1; min-width:0; }
+    .req-mentor-name { font-weight:700; font-size:1rem; margin-bottom:2px; }
+    .req-specialty { font-size:.8125rem; color:var(--color-accent); margin-bottom:8px; }
+    .req-offer-name { font-size:.8125rem; color:var(--color-muted); }
+    .req-status-wrap { flex-shrink:0; }
+
+    .req-card-body { padding:16px 20px; }
+    .req-label { font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--color-muted); margin-bottom:6px; }
+    .req-message { font-size:.875rem; color:var(--color-muted); line-height:1.65; margin-bottom:16px; }
+
+    .req-card-footer {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 20px; border-top:1px solid var(--color-border);
+      flex-wrap:wrap; gap:10px;
+    }
+    .req-date { font-size:.8125rem; color:var(--color-muted); }
+
+
+    /* ── Review modal ── */
+    .modal-backdrop {
+      position:fixed; inset:0; background:rgba(0,0,0,.7);
+      backdrop-filter:blur(4px); z-index:var(--z-modal);
+      display:flex; align-items:center; justify-content:center;
+      padding:20px; opacity:0; visibility:hidden;
+      transition:opacity 300ms, visibility 300ms;
+    }
+    .modal-backdrop.open { opacity:1; visibility:visible; }
+    .modal-box {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); width:100%; max-width:460px;
+      max-height:90dvh; overflow-y:auto;
+      transform:scale(.92); transition:transform 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-backdrop.open .modal-box { transform:scale(1); }
+    .modal-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:20px 24px 0; margin-bottom:20px;
+    }
+    .modal-title { font-family:var(--font-heading); font-size:1.125rem; font-weight:700; }
+    .modal-close {
+      width:34px; height:34px; border-radius:50%;
+      border:1.5px solid var(--color-border); background:none;
+      color:var(--color-muted); cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:all var(--transition-fast);
+    }
+    .modal-close:hover { border-color:var(--color-accent); color:var(--color-accent); }
+    .modal-body { padding:0 24px 24px; }
+
+    /* ── Star rating interactive ── */
+    .star-pick { display:flex; gap:8px; margin-bottom:16px; }
+    .star-pick-btn {
+      background:none; border:none; cursor:pointer; padding:0;
+      color:var(--color-muted); transition:color var(--transition-fast), transform var(--transition-fast);
+    }
+    .star-pick-btn:hover, .star-pick-btn.lit { color:var(--color-accent); transform:scale(1.2); }
+    .star-pick-btn svg { width:28px; height:28px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align:center; padding:72px 24px;
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg);
+      animation:emptyScaleUp 400ms cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes emptyScaleUp {
+      from { opacity:0; transform:scale(0.85); }
+      to   { opacity:1; transform:scale(1); }
+    }
+    .empty-svg { margin:0 auto 24px; display:block; }
+    .empty-title { font-family:var(--font-heading); font-size:1.25rem; font-weight:700; margin-bottom:8px; }
+    .empty-text { color:var(--color-muted); font-size:.9375rem; margin-bottom:28px; line-height:1.6; }
+
+    /* ── Cancel confirm slideDown ── */
+    .confirm-row {
+      display:flex; align-items:center; gap:8px; margin-top:10px; flex-wrap:wrap;
+      height:0; overflow:hidden;
+      transition:height 250ms ease, opacity 250ms ease;
+      opacity:0;
+    }
+    .confirm-row.open { height:40px; opacity:1; }
+    .confirm-text { font-size:.875rem; color:var(--color-muted); white-space:nowrap; }
+  </style>
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<section class="section">
+  <div class="container" style="max-width:800px">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:28px" class="reveal">
+      <div>
+        <h1 style="font-size:clamp(1.5rem,3vw,2rem)">Мои заявки</h1>
+        <p style="color:var(--color-muted);margin-top:4px;font-size:.9375rem" id="reqCountLabel">Загрузка...</p>
+      </div>
+      <a href="mentors.html" class="btn btn-primary btn-md">Найти ментора</a>
+    </div>
+
+    <div class="req-filters reveal" id="reqFilters">
+      <button class="req-filter active" data-status="">Все</button>
+      <button class="req-filter" data-status="pending">Ожидают</button>
+      <button class="req-filter" data-status="accepted">Принятые</button>
+      <button class="req-filter" data-status="rejected">Отклонённые</button>
+      <button class="req-filter" data-status="cancelled">Отменённые</button>
+    </div>
+
+    <div id="reqList"></div>
+
+  </div>
+</section>
+
+<!-- Review modal -->
+<div class="modal-backdrop" id="reviewModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">Оставить отзыв</div>
+      <button class="modal-close" onclick="closeReviewModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--color-muted);margin-bottom:16px;font-size:.9375rem">Оцените вашу сессию с <strong id="reviewMentorName"></strong></p>
+      <div class="star-pick" id="starPick">
+        <button class="star-pick-btn" data-val="1" onclick="setRating(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button class="star-pick-btn" data-val="2" onclick="setRating(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button class="star-pick-btn" data-val="3" onclick="setRating(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button class="star-pick-btn" data-val="4" onclick="setRating(4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        <button class="star-pick-btn" data-val="5" onclick="setRating(5)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      </div>
+      <div style="margin-bottom:16px">
+        <label style="font-size:.8125rem;font-weight:600;color:var(--color-muted);margin-bottom:6px;display:block">Ваш комментарий</label>
+        <textarea class="form-input" id="reviewComment" placeholder="Расскажите о своём опыте..." style="min-height:100px;resize:vertical" maxlength="500"></textarea>
+        <div style="text-align:right;font-size:.75rem;color:var(--color-muted);margin-top:4px" id="reviewCharCount">0/500</div>
+      </div>
+      <p id="reviewErr" style="color:#ff6b8a;font-size:.8125rem;margin-bottom:12px;display:none">Выберите оценку и напишите комментарий</p>
+      <button class="btn btn-primary btn-md" style="width:100%" id="submitReviewBtn" onclick="submitReview()">Опубликовать отзыв</button>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+const MOCK_REQUESTS = [
+  { id:1, mentorName:'Алексей Смирнов',  initials:'АС', specialty:'Frontend', offer:'Пробная сессия',    status:'pending',  message:'Хочу разобраться с React hooks и архитектурой SPA.', date:'7 мая 2026', hasReview:false },
+  { id:2, mentorName:'Мария Козлова',    initials:'МК', specialty:'Data Science',offer:'Вводная сессия', status:'accepted', message:'Изучаю ML, нужна помощь с пониманием нейросетей.', date:'2 мая 2026', hasReview:false },
+  { id:3, mentorName:'Дмитрий Петров',   initials:'ДП', specialty:'Backend',    offer:'Code Review',     status:'rejected', message:'Хочу разобрать архитектуру моего pet-проекта на Go.', date:'28 апр 2026', hasReview:false },
+  { id:4, mentorName:'Анна Иванова',     initials:'АИ', specialty:'Design',     offer:'Менторство',      status:'accepted', message:'Переключаюсь с графического дизайна на UX. Нужен ментор.', date:'20 апр 2026', hasReview:true },
+  { id:5, mentorName:'Ольга Морозова',   initials:'ОМ', specialty:'Frontend',   offer:'Бесплатная сессия',status:'cancelled',message:'Хочу научиться Angular с нуля.',                 date:'15 апр 2026', hasReview:false },
+];
+
+let filterStatus = '';
+let pendingReviewId = null;
+let selectedRating = 0;
+let allRequests = [...MOCK_REQUESTS];
+
+const STATUS_LABELS = { pending:'Ожидает', accepted:'Принята', rejected:'Отклонена', cancelled:'Отменена' };
+const STATUS_BADGE  = { pending:'badge-pending', accepted:'badge-accepted', rejected:'badge-rejected', cancelled:'badge-cancelled' };
+
+function renderRequests() {
+  const list = filterStatus ? allRequests.filter(r => r.status === filterStatus) : allRequests;
+  const el = document.getElementById('reqList');
+  const total = allRequests.length;
+  const pending = allRequests.filter(r => r.status === 'pending').length;
+
+  document.getElementById('reqCountLabel').textContent =
+    `Всего: ${total} · Ожидают ответа: ${pending}`;
+
+  if (!list.length) {
+    const isFilterEmpty = filterStatus !== '' && allRequests.length > 0;
+    el.innerHTML = `
+      <div class="empty-state">
+        <svg class="empty-svg" width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="12" y="28" width="72" height="52" rx="8" fill="rgba(205,180,255,0.06)" stroke="rgba(205,180,255,0.25)" stroke-width="1.5"/>
+          <path d="M12 40 L48 62 L84 40" stroke="rgba(205,180,255,0.4)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <rect x="34" y="12" width="28" height="24" rx="6" fill="rgba(205,180,255,0.08)" stroke="rgba(205,180,255,0.2)" stroke-width="1.5"/>
+          <line x1="40" y1="20" x2="56" y2="20" stroke="rgba(205,180,255,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="40" y1="26" x2="52" y2="26" stroke="rgba(205,180,255,0.25)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <div class="empty-title">${isFilterEmpty ? 'Заявок в этой категории нет' : 'У вас пока нет заявок'}</div>
+        <p class="empty-text">${isFilterEmpty
+          ? 'В выбранном фильтре нет заявок.<br>Попробуйте другой статус.'
+          : 'Вы ещё не отправляли заявок менторам.<br>Найдите подходящего специалиста и начните!'}
+        </p>
+        ${isFilterEmpty
+          ? `<button class="btn btn-outline btn-md" onclick="resetFilter()">Сбросить фильтр</button>`
+          : `<a href="mentors.html" class="btn btn-primary btn-md">Найти ментора</a>`}
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = list.map((r, i) => `
+    <div class="req-card reveal" id="req-${r.id}" style="transition-delay:${i*50}ms">
+      <div class="req-card-header">
+        <div class="req-avatar">${r.initials}</div>
+        <div class="req-meta">
+          <div class="req-mentor-name">${r.mentorName}</div>
+          <div class="req-specialty">${r.specialty}</div>
+          <div class="req-offer-name">📌 ${r.offer}</div>
+        </div>
+        <div class="req-status-wrap"><span class="badge ${STATUS_BADGE[r.status]}">${STATUS_LABELS[r.status]}</span></div>
+      </div>
+      <div class="req-card-body">
+        <div class="req-label">Ваше сообщение</div>
+        <p class="req-message">${r.message}</p>
+        ${r.status === 'rejected' ? `<p style="padding:12px 16px;background:rgba(255,100,100,.06);border-left:2px solid #ff6464;border-radius:0 var(--radius-sm) var(--radius-sm) 0;font-size:.875rem;color:var(--color-muted)">Ментор не смог принять заявку в данный момент. Попробуйте другого специалиста.</p>` : ''}
+      </div>
+      <div class="req-card-footer">
+        <span class="req-date">📅 ${r.date}</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          ${r.status === 'accepted' ? `<a href="chat.html" class="btn btn-outline btn-sm">Написать</a>` : ''}
+          ${r.status === 'accepted' && !r.hasReview ? `<button class="btn btn-ghost btn-sm" onclick="openReviewModal(${r.id},'${r.mentorName}')">Оставить отзыв</button>` : ''}
+          ${r.status === 'accepted' && r.hasReview ? `<span style="font-size:.8125rem;color:var(--color-success)">✓ Отзыв оставлен</span>` : ''}
+          ${r.status === 'pending' ? `
+            <button class="btn btn-danger btn-sm" id="cancel-btn-${r.id}" onclick="showCancel(${r.id})">Отменить</button>
+            <div class="confirm-row" id="confirm-${r.id}">
+              <span class="confirm-text">Вы уверены?</span>
+              <button class="btn btn-danger btn-sm" onclick="cancelRequest(${r.id})">Да</button>
+              <button class="btn btn-ghost btn-sm" onclick="hideCancel(${r.id})">Нет</button>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    </div>`).join('');
+
+  if (typeof initScrollReveal === 'function') initScrollReveal();
+}
+
+/* ── Filters ── */
+document.getElementById('reqFilters').addEventListener('click', e => {
+  const btn = e.target.closest('.req-filter');
+  if (!btn) return;
+  document.querySelectorAll('.req-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterStatus = btn.dataset.status;
+  renderRequests();
+});
+
+function resetFilter() {
+  filterStatus = '';
+  document.querySelectorAll('.req-filter').forEach(b => b.classList.remove('active'));
+  document.querySelector('.req-filter[data-status=""]').classList.add('active');
+  renderRequests();
+}
+
+/* ── Cancel ── */
+function showCancel(id) {
+  const row = document.getElementById(`confirm-${id}`);
+  const btn = document.getElementById(`cancel-btn-${id}`);
+  if (row) row.classList.add('open');
+  if (btn) btn.style.display = 'none';
+}
+function hideCancel(id) {
+  const row = document.getElementById(`confirm-${id}`);
+  const btn = document.getElementById(`cancel-btn-${id}`);
+  if (row) row.classList.remove('open');
+  if (btn) btn.style.display = '';
+}
+
+async function cancelRequest(id) {
+  const card = document.getElementById(`req-${id}`);
+  if (!card) return;
+  const h = card.offsetHeight;
+  card.style.height = h + 'px';
+  card.style.overflow = 'hidden';
+  card.offsetHeight; // force reflow
+  card.style.transition = 'height 400ms ease, opacity 400ms ease, margin-bottom 400ms ease, border-width 400ms ease';
+  card.style.height = '0';
+  card.style.opacity = '0';
+  card.style.marginBottom = '0';
+  card.style.borderWidth = '0';
+  card.addEventListener('transitionend', (e) => {
+    if (e.propertyName !== 'height') return;
+    const req = allRequests.find(r => r.id === id);
+    if (req) req.status = 'cancelled';
+    card.remove();
+  }, { once: true });
+  try { await apiRequest('DELETE', `/applications/${id}`); } catch { /* ignore */ }
+}
+
+/* ── Review modal ── */
+function openReviewModal(id, mentorName) {
+  pendingReviewId = id;
+  selectedRating = 0;
+  document.getElementById('reviewMentorName').textContent = mentorName;
+  document.getElementById('reviewComment').value = '';
+  document.getElementById('reviewCharCount').textContent = '0/500';
+  document.getElementById('reviewErr').style.display = 'none';
+  document.querySelectorAll('.star-pick-btn').forEach(b => b.classList.remove('lit'));
+  const modal = document.getElementById('reviewModal');
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeReviewModal() {
+  document.getElementById('reviewModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('reviewModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('reviewModal')) closeReviewModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReviewModal(); });
+
+document.getElementById('reviewComment').addEventListener('input', function() {
+  document.getElementById('reviewCharCount').textContent = `${this.value.length}/500`;
+});
+
+function setRating(n) {
+  selectedRating = n;
+  document.querySelectorAll('.star-pick-btn').forEach(b => {
+    b.classList.toggle('lit', parseInt(b.dataset.val) <= n);
+    b.querySelector('svg').setAttribute('fill', parseInt(b.dataset.val) <= n ? 'var(--color-accent)' : 'none');
+  });
+}
+
+async function submitReview() {
+  const comment = document.getElementById('reviewComment').value.trim();
+  if (!selectedRating || comment.length < 10) {
+    document.getElementById('reviewErr').style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('submitReviewBtn');
+  btn.disabled = true;
+  btn.textContent = 'Публикуем...';
+  const req = allRequests.find(r => r.id === pendingReviewId);
+  try {
+    await apiRequest('POST', '/reviews', { mentorId: pendingReviewId, rating: selectedRating, comment });
+  } catch { /* ignore in demo */ }
+  if (req) req.hasReview = true;
+  closeReviewModal();
+  renderRequests();
+  btn.disabled = false;
+  btn.textContent = 'Опубликовать отзыв';
+}
+
+/* ── Load ── */
+async function load() {
+  try {
+    const data = await apiRequest('GET', '/applications/my');
+    if (data && data.length) allRequests = data;
+  } catch { /* mock */ }
+  renderRequests();
+}
+load();
+</script>
+</body>
+</html>

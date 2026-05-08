@@ -4,139 +4,387 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Уведомления — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
   <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Notification item ── */
+    .notif-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .notif-page-title {
+      font-family: var(--font-heading);
+      font-size: 1.75rem;
+      font-weight: 800;
+    }
+    .notif-actions { display: flex; gap: 10px; align-items: center; }
+
+    .notif-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .notif-filter-btn {
+      padding: 6px 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--color-border);
+      background: transparent;
+      color: var(--color-text);
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .notif-filter-btn:hover { border-color: var(--color-accent); }
+    .notif-filter-btn.active { border-color: var(--color-accent); background: rgba(205,180,255,0.1); color: var(--color-accent); }
+
+    .notif-list { display: flex; flex-direction: column; gap: 0; }
+
+    .notif-item {
+      display: flex;
+      gap: 14px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border);
+      background: transparent;
+      transition: background var(--transition-fast), opacity 300ms, transform 300ms;
+      cursor: pointer;
+      position: relative;
+      border-radius: 0;
+    }
+    .notif-item:first-child { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+    .notif-item:last-child { border-radius: 0 0 var(--radius-md) var(--radius-md); border-bottom: none; }
+    .notif-item:only-child { border-radius: var(--radius-md); }
+    .notif-item:hover { background: rgba(205,180,255,0.04); }
+    .notif-item.unread { background: rgba(205,180,255,0.06); }
+    .notif-item.unread::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--color-accent);
+      border-radius: 0 2px 2px 0;
+    }
+    .notif-item.reading-out {
+      opacity: 0;
+      transform: translateX(8px);
+      pointer-events: none;
+    }
+
+    .notif-icon-wrap {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.125rem;
+      flex-shrink: 0;
+    }
+    .notif-icon-wrap.type-request  { background: rgba(205,180,255,0.12); }
+    .notif-icon-wrap.type-message  { background: rgba(80,180,255,0.12); }
+    .notif-icon-wrap.type-review   { background: rgba(255,200,50,0.12); }
+    .notif-icon-wrap.type-system   { background: rgba(80,200,120,0.12); }
+    .notif-icon-wrap.type-payment  { background: rgba(255,160,60,0.12); }
+
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-title { font-weight: 600; font-size: 0.9375rem; margin-bottom: 3px; }
+    .notif-text { font-size: 0.875rem; color: var(--color-muted); line-height: 1.5; }
+    .notif-time { font-size: 0.75rem; color: var(--color-muted); margin-top: 6px; }
+    .notif-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      flex-shrink: 0;
+      align-self: center;
+      transition: transform 300ms, opacity 300ms;
+    }
+    .notif-dot.gone { transform: scale(0); opacity: 0; }
+
+    .notif-empty {
+      text-align: center;
+      padding: 80px 24px;
+      color: var(--color-muted);
+    }
+    .notif-empty-icon { font-size: 3.5rem; margin-bottom: 16px; }
+    .notif-empty-title { font-family: var(--font-heading); font-size: 1.125rem; font-weight: 700; color: var(--color-text); margin-bottom: 8px; }
+
+    /* ── Wrapper card ── */
+    .notif-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    /* ── Toast stack ── */
+    .toast-stack {
+      position: fixed;
+      top: calc(var(--header-height) + 16px);
+      right: 20px;
+      z-index: var(--z-toast, 900);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 14px 18px;
+      min-width: 260px;
+      max-width: 360px;
+      pointer-events: all;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      transform: translateX(120%);
+      opacity: 0;
+      transition: transform 350ms var(--ease-out), opacity 350ms;
+    }
+    .toast.show { transform: translateX(0); opacity: 1; }
+    .toast.hide { transform: translateX(120%); opacity: 0; }
+    .toast-icon { font-size: 1.25rem; flex-shrink: 0; }
+    .toast-body { flex: 1; }
+    .toast-title { font-weight: 600; font-size: 0.9375rem; margin-bottom: 2px; }
+    .toast-text { font-size: 0.8125rem; color: var(--color-muted); line-height: 1.5; }
+    .toast-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--color-muted); padding: 0; font-size: 1rem; line-height: 1;
+      flex-shrink: 0; transition: color var(--transition-fast);
+    }
+    .toast-close:hover { color: var(--color-text); }
+    .toast-progress {
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 2px;
+      background: var(--color-accent);
+      border-radius: 0 0 var(--radius-md) var(--radius-md);
+      animation: toastProgress linear forwards;
+    }
+    @keyframes toastProgress { from { width: 100%; } to { width: 0%; } }
+
+    .toast.toast-success .toast-progress { background: var(--color-success); }
+    .toast.toast-error   .toast-progress { background: var(--color-error); }
+    .toast.toast-warning .toast-progress { background: var(--color-warning); }
+  </style>
 </head>
 <body>
-
+<div class="custom-cursor"></div>
 <header class="site-header"></header>
 
-<div class="dashboard-layout">
-  <aside class="sidebar">
-    <div class="sidebar-avatar">🔔</div>
-    <div class="sidebar-name">Уведомления</div>
-    <div class="sidebar-role">Центр уведомлений</div>
-    <ul class="sidebar-nav" style="margin-top:16px">
-      <li><a href="#all" class="active" onclick="return filterNotifs('all',this)">📋 Все</a></li>
-      <li><a href="#unread" onclick="return filterNotifs('unread',this)">🔵 Непрочитанные</a></li>
-    </ul>
-  </aside>
+<!-- Toast stack -->
+<div class="toast-stack" id="toastStack"></div>
 
-  <div class="content-area">
-    <div class="content-section">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <h3 style="margin:0">Уведомления</h3>
-        <div class="notif-bulk-btns">
-          <button class="btn-sm primary" onclick="markAll()">Прочитать все</button>
-          <button class="btn-sm" onclick="clearRead()">Удалить прочитанные</button>
-        </div>
+<section class="section">
+  <div class="container" style="max-width:760px">
+
+    <div class="notif-header-row reveal">
+      <div>
+        <div class="notif-page-title">Уведомления</div>
+        <p style="color:var(--color-muted);font-size:0.9375rem;margin-top:4px" id="unreadCountLabel">Загрузка...</p>
       </div>
-      <div id="notifsList"><div class="loader"><div class="spinner"></div></div></div>
+      <div class="notif-actions">
+        <button class="btn btn-ghost btn-sm" id="readAllBtn">Прочитать все</button>
+      </div>
     </div>
+
+    <div class="notif-filters reveal" id="notifFilters">
+      <button class="notif-filter-btn active" data-type="">Все</button>
+      <button class="notif-filter-btn" data-type="request">Заявки</button>
+      <button class="notif-filter-btn" data-type="message">Сообщения</button>
+      <button class="notif-filter-btn" data-type="review">Отзывы</button>
+      <button class="notif-filter-btn" data-type="system">Система</button>
+    </div>
+
+    <div class="notif-card reveal">
+      <div class="notif-list" id="notifList"></div>
+    </div>
+
   </div>
-</div>
+</section>
 
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
 <script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
 <script src="../js/header.js"></script>
-<script src="../js/notifSocket.js"></script>
 <script>
-  if (!requireAuth()) throw new Error('Not authed');
+/* ═══════════════════════════════════════════════════
+   TOAST SYSTEM
+═══════════════════════════════════════════════════ */
+window.showToast = function({ title = '', text = '', type = 'info', duration = 4000 } = {}) {
+  const icons = { info: 'ℹ️', success: '✅', error: '❌', warning: '⚠️' };
+  const stack = document.getElementById('toastStack');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.style.position = 'relative';
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || icons.info}</span>
+    <div class="toast-body">
+      ${title ? `<div class="toast-title">${title}</div>` : ''}
+      ${text ? `<div class="toast-text">${text}</div>` : ''}
+    </div>
+    <button class="toast-close" onclick="dismissToast(this.closest('.toast'))">✕</button>
+    <div class="toast-progress" style="animation-duration:${duration}ms"></div>`;
+  stack.appendChild(toast);
+  requestAnimationFrame(() => { requestAnimationFrame(() => { toast.classList.add('show'); }); });
+  setTimeout(() => dismissToast(toast), duration);
+  return toast;
+};
 
-  let _all = [];
-  let _filter = 'all';
+window.dismissToast = function(toast) {
+  if (!toast || toast.classList.contains('hide')) return;
+  toast.classList.add('hide');
+  setTimeout(() => toast.remove(), 400);
+};
 
-  const ICONS = {
-    new_application:     '📋',
-    application_accepted:'✅',
-    application_rejected:'❌',
-    new_message:         '💬',
-    new_review:          '⭐',
-  };
+/* ═══════════════════════════════════════════════════
+   MOCK DATA
+═══════════════════════════════════════════════════ */
+let NOTIFS = [
+  { id:1,  type:'request', icon:'📋', title:'Новая заявка от Ивана К.',         text:'Иван хочет начать менторство по теме React и TypeScript.', time:'5 минут назад',  read:false },
+  { id:2,  type:'message', icon:'💬', title:'Новое сообщение от Алексея Смирнова', text:'«Договорились на четверг в 19:00»',                      time:'14 минут назад', read:false },
+  { id:3,  type:'review',  icon:'⭐', title:'Новый отзыв — 5 звёзд',             text:'Светлана М. оставила отзыв о вашей сессии.',              time:'1 час назад',    read:false },
+  { id:4,  type:'system',  icon:'🎉', title:'Добро пожаловать в MentorConnect!', text:'Ваш аккаунт подтверждён. Начните поиск ментора.',          time:'2 часа назад',   read:true  },
+  { id:5,  type:'request', icon:'✅', title:'Заявка принята',                    text:'Алексей Смирнов принял вашу заявку. Начните диалог!',      time:'вчера 18:42',   read:true  },
+  { id:6,  type:'message', icon:'💬', title:'Новое сообщение от Марии Козловой', text:'«Спасибо за разбор! Очень помогло.»',                      time:'вчера 11:45',   read:true  },
+  { id:7,  type:'review',  icon:'💬', title:'Ответ ментора на ваш отзыв',        text:'Артём, учту — буду спрашивать в начале сессии.',           time:'2 дня назад',   read:true  },
+  { id:8,  type:'system',  icon:'🔔', title:'Заявка автоматически закрыта',      text:'Ментор не ответил в течение 48 часов. Выберите другого.',  time:'3 дня назад',   read:true  },
+];
 
-  async function loadNotifs() {
-    const el = document.getElementById('notifsList');
-    el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-    try {
-      const data = await apiRequest('GET', '/notifications?limit=50');
-      _all = data.notifications || [];
-      renderList();
-    } catch {
-      el.innerHTML = '<div class="empty-state"><p>Ошибка загрузки уведомлений</p></div>';
+let filterType = '';
+
+/* ═══════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════ */
+function getUnreadCount() {
+  return NOTIFS.filter(n => !n.read).length;
+}
+
+function updateUnreadLabel() {
+  const cnt = getUnreadCount();
+  document.getElementById('unreadCountLabel').textContent =
+    cnt > 0 ? `${cnt} непрочитанных` : 'Все уведомления прочитаны';
+  if (typeof updateNotifBadge === 'function') updateNotifBadge(cnt);
+}
+
+function renderNotifs() {
+  const list = filterType ? NOTIFS.filter(n => n.type === filterType) : NOTIFS;
+  const el = document.getElementById('notifList');
+
+  if (!list.length) {
+    el.innerHTML = `
+      <div class="notif-empty">
+        <div class="notif-empty-icon">🔕</div>
+        <div class="notif-empty-title">Нет уведомлений</div>
+        <p>Здесь появятся ваши уведомления</p>
+      </div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(n => `
+    <div class="notif-item ${n.read ? '' : 'unread'}" id="notif-${n.id}" onclick="markRead(${n.id})">
+      <div class="notif-icon-wrap type-${n.type}">${n.icon}</div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-text">${n.text}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+      ${n.read ? '' : `<div class="notif-dot" id="dot-${n.id}"></div>`}
+    </div>`).join('');
+
+  updateUnreadLabel();
+}
+
+/* ═══════════════════════════════════════════════════
+   MARK READ
+═══════════════════════════════════════════════════ */
+function markRead(id) {
+  const notif = NOTIFS.find(n => n.id === id);
+  if (!notif || notif.read) return;
+
+  const el = document.getElementById(`notif-${id}`);
+  const dot = document.getElementById(`dot-${id}`);
+
+  if (dot) {
+    dot.classList.add('gone');
+    setTimeout(() => dot.remove(), 300);
+  }
+
+  setTimeout(() => {
+    if (el) {
+      el.classList.add('reading-out');
+      setTimeout(() => {
+        notif.read = true;
+        el.classList.remove('unread', 'reading-out');
+        el.style.opacity = '';
+        el.style.transform = '';
+      }, 300);
+    } else {
+      notif.read = true;
     }
-  }
+  }, 150);
 
-  function renderList() {
-    const el = document.getElementById('notifsList');
-    const list = _filter === 'unread' ? _all.filter(n => !n.is_read) : _all;
-    if (!list.length) {
-      el.innerHTML = '<div class="empty-state"><p>Нет уведомлений</p></div>';
-      return;
+  updateUnreadLabel();
+
+  try { apiRequest('PUT', `/notifications/${id}/read`); } catch { /* ignore */ }
+}
+
+function markAllRead() {
+  const unread = NOTIFS.filter(n => !n.read);
+  if (!unread.length) {
+    showToast({ title: 'Уже прочитано', text: 'Нет непрочитанных уведомлений', type: 'info' });
+    return;
+  }
+  unread.forEach(n => { n.read = true; });
+  renderNotifs();
+  showToast({ title: 'Готово', text: 'Все уведомления отмечены как прочитанные', type: 'success' });
+  try { apiRequest('PUT', '/notifications/read-all'); } catch { /* ignore */ }
+}
+
+/* ═══════════════════════════════════════════════════
+   FILTERS + EVENTS
+═══════════════════════════════════════════════════ */
+document.getElementById('notifFilters').addEventListener('click', e => {
+  const btn = e.target.closest('.notif-filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.notif-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterType = btn.dataset.type;
+  renderNotifs();
+});
+
+document.getElementById('readAllBtn').addEventListener('click', markAllRead);
+
+/* ═══════════════════════════════════════════════════
+   LOAD
+═══════════════════════════════════════════════════ */
+async function loadNotifications() {
+  try {
+    const data = await apiRequest('GET', '/notifications');
+    if (data && data.length) {
+      NOTIFS = data.map(n => ({
+        id: n.id,
+        type: n.type || 'system',
+        icon: { request:'📋', message:'💬', review:'⭐', system:'🔔', payment:'💳' }[n.type] || '🔔',
+        title: n.title || 'Уведомление',
+        text: n.message || '',
+        time: new Date(n.createdAt).toLocaleString('ru', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }),
+        read: n.isRead,
+      }));
     }
-    el.innerHTML = `<div class="notif-page-list">${list.map(n => {
-      const icon = ICONS[n.type] || '🔔';
-      const time = n.created_at ? new Date(n.created_at).toLocaleString('ru-RU', {
-        day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'
-      }) : '';
-      const href = n.link && n.link !== '#' ? `href="${n.link}"` : '';
-      return `<a class="notif-page-item ${n.is_read?'':'unread'}" ${href}
-                 onclick="onItemClick(event,${n.id})">
-        <span class="notif-page-icon">${icon}</span>
-        <div class="notif-page-body">
-          <div class="notif-page-title">${n.title}</div>
-          ${n.body ? `<div class="notif-page-text">${n.body}</div>` : ''}
-          <div class="notif-page-time">${time}</div>
-        </div>
-        <button class="notif-page-del" onclick="delNotif(event,${n.id})" title="Удалить">✕</button>
-      </a>`;
-    }).join('')}</div>`;
-  }
+  } catch { /* use mock */ }
+  renderNotifs();
+}
 
-  async function onItemClick(e, id) {
-    const notif = _all.find(n => n.id === id);
-    if (notif && !notif.is_read) {
-      notif.is_read = true;
-      try { await apiRequest('PUT', `/notifications/${id}/read`); } catch { /* ignore */ }
-      renderList();
-    }
-  }
-
-  async function delNotif(e, id) {
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      await apiRequest('DELETE', `/notifications/${id}`);
-      _all = _all.filter(n => n.id !== id);
-      renderList();
-    } catch (err) { alert(err.message || 'Ошибка удаления'); }
-  }
-
-  async function markAll() {
-    try {
-      await apiRequest('PUT', '/notifications/read-all');
-      _all = _all.map(n => ({ ...n, is_read: true }));
-      if (window.__notifSocket) window.__notifSocket.setBadge(0);
-      renderList();
-    } catch (err) { alert(err.message); }
-  }
-
-  async function clearRead() {
-    const readIds = _all.filter(n => n.is_read).map(n => n.id);
-    try {
-      await Promise.all(readIds.map(id => apiRequest('DELETE', `/notifications/${id}`)));
-      _all = _all.filter(n => !n.is_read);
-      renderList();
-    } catch (err) { alert(err.message); }
-  }
-
-  function filterNotifs(f, el) {
-    _filter = f;
-    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
-    if (el) el.classList.add('active');
-    renderList();
-    return false;
-  }
-
-  loadNotifs();
+loadNotifications();
 </script>
 </body>
 </html>

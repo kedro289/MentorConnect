@@ -1,24 +1,59 @@
-/*
- * Файл: frontend/js/header.js
- * Отвечает за: рендеринг универсальной шапки с гамбургером, дропдауном пользователя.
- * Используется в: все HTML страницы (подключается после api.js).
- */
+/* header.js — MentorConnect redesign header */
 (function () {
   'use strict';
 
-  /* ---- Применяем тему немедленно, чтобы избежать мигания ---- */
-  const _storedTheme = localStorage.getItem('mc_theme') || 'light';
-  document.documentElement.setAttribute('data-theme', _storedTheme);
+  /* --- Тема: применяем мгновенно --- */
+  const _theme = localStorage.getItem('mc_theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', _theme);
 
-  function applyTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('mc_theme', theme);
+  function applyTheme(t) {
+    document.documentElement.setAttribute('data-theme', t);
+    localStorage.setItem('mc_theme', t);
   }
 
   function getBase() {
     return window.location.pathname.replace(/\\/g, '/').includes('/pages/') ? '../' : '';
   }
 
+  /* --- Навигация по роли --- */
+  function getNavLinks(user, base) {
+    if (!user) {
+      return [
+        { href: base + 'index.html',              label: 'Главная' },
+        { href: base + 'pages/mentors.html',       label: 'Менторы' },
+        { href: base + 'pages/how-it-works.html',  label: 'Как это работает' },
+        { href: base + 'pages/about.html',         label: 'О проекте' },
+        { href: base + 'pages/faq.html',           label: 'FAQ' },
+      ];
+    }
+    if (user.role === 'student') {
+      return [
+        { href: base + 'index.html',              label: 'Главная' },
+        { href: base + 'pages/mentors.html',       label: 'Менторы' },
+        { href: base + 'pages/chat.html',          label: 'Чаты' },
+        { href: base + 'pages/notifications.html', label: 'Уведомления', notif: true },
+        { href: base + 'pages/my-requests.html',   label: 'Заявки' },
+      ];
+    }
+    if (user.role === 'mentor') {
+      return [
+        { href: base + 'index.html',              label: 'Главная' },
+        { href: base + 'pages/chat.html',          label: 'Чаты' },
+        { href: base + 'pages/notifications.html', label: 'Уведомления', notif: true },
+        { href: base + 'pages/my-students.html',   label: 'Студенты' },
+        { href: base + 'pages/my-offers.html',     label: 'Предложения' },
+        { href: base + 'pages/reviews.html',       label: 'Отзывы' },
+      ];
+    }
+    if (user.role === 'admin') {
+      return [
+        { href: base + 'pages/admin.html', label: 'Админ-панель' },
+      ];
+    }
+    return [];
+  }
+
+  /* --- Рендер шапки --- */
   function renderHeader() {
     const header = document.querySelector('.site-header');
     if (!header) return;
@@ -26,172 +61,174 @@
     const base  = getBase();
     const user  = (typeof getUser === 'function') ? getUser() : null;
     const token = localStorage.getItem('mc_token');
+    const links = getNavLinks(user, base);
 
-    let dashLink = base + 'pages/student-dashboard.html';
-    if (user) {
-      if (user.role === 'mentor') dashLink = base + 'pages/mentor-dashboard.html';
-      if (user.role === 'admin')  dashLink = base + 'pages/admin.html';
-    }
+    const currentPath = window.location.pathname.replace(/\\/g, '/');
 
-    const initials = user ? (user.full_name || user.email || 'U').charAt(0).toUpperCase() : 'U';
-    const displayName = user ? (user.full_name || (user.email || '').split('@')[0]) : '';
+    /* nav links HTML */
+    const navLinksHtml = links.map(link => {
+      const isActive = currentPath.endsWith(link.href.replace(/^(\.\.\/|\.\/)?/, '').split('/').pop()) ||
+                       (link.href.includes('index') && (currentPath === '/' || currentPath.endsWith('index.html')));
+      return `<a href="${link.href}" class="nav-link${isActive ? ' active' : ''}" data-nav-label="${link.label}">
+        ${link.label}${link.notif ? `<span class="notif-badge" id="navNotifBadge" style="position:relative;top:-1px;margin-left:4px;display:none"></span>` : ''}
+      </a>`;
+    }).join('');
 
-    const desktopAuth = token && user ? `
-      <a href="${base}pages/chat.html" class="nav-link nav-icon-link" title="Сообщения">
-        <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round"
-            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03
-               8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512
-               15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-        </svg>
-      </a>
-      <div class="notif-bell-wrap">
-        <button class="nav-icon-btn" id="notifBtn" title="Уведомления" aria-label="Уведомления">
-          <svg width="19" height="19" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118
-                 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0
-                 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0
-                 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0
-                 11-6 0v-1m6 0H9"/>
-          </svg>
-          <span class="notif-badge hidden" id="notifBadge"></span>
+    /* auth area */
+    const authHtml = token && user ? `
+      <div class="notif-wrap" id="headerNotifWrap">
+        <button class="icon-btn" id="notifBtn" title="Уведомления">
+          ${Icons ? Icons.bell : '🔔'}
+          <span class="notif-badge" id="notifBadge"></span>
         </button>
       </div>
-      <div class="user-menu-wrap">
-        <button class="user-menu-btn" id="userMenuBtn" aria-expanded="false" aria-haspopup="true">
-          <div class="user-avatar-sm">${initials}</div>
-          <span class="user-name-sm">${displayName}</span>
-          <svg class="chevron-icon" width="13" height="13" viewBox="0 0 24 24"
-               fill="none" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-          </svg>
+      <div style="position:relative">
+        <button class="user-menu-btn" id="userMenuBtn" aria-expanded="false">
+          <div class="user-avatar-sm" id="headerAvatar">
+            ${user.avatar_url ? `<img src="${user.avatar_url}" alt="">` : (user.full_name || user.email || 'U').charAt(0).toUpperCase()}
+          </div>
+          <span class="user-name-sm">${user.full_name || (user.email || '').split('@')[0]}</span>
+          ${Icons ? Icons.chevronDown : '▾'}
         </button>
-        <div class="user-dropdown" id="userDropdown" role="menu">
-          <a href="${dashLink}" class="dropdown-item" role="menuitem">Личный кабинет</a>
-          <a href="${base}pages/chat.html" class="dropdown-item" role="menuitem">Сообщения</a>
-          <a href="${base}pages/notifications.html" class="dropdown-item" role="menuitem">Уведомления</a>
+        <div class="user-dropdown" id="userDropdown">
+          ${user.role === 'student' ? `<a href="${base}pages/student-dashboard.html" class="dropdown-item">${Icons ? Icons.home : ''} Кабинет</a>` : ''}
+          ${user.role === 'mentor'  ? `<a href="${base}pages/mentor-dashboard.html" class="dropdown-item">${Icons ? Icons.home : ''} Кабинет</a>` : ''}
+          <a href="${base}pages/profile.html" class="dropdown-item">${Icons ? Icons.user : ''} Профиль</a>
           <div class="dropdown-divider"></div>
-          <button class="dropdown-item dropdown-item-danger" id="dropdownLogoutBtn" role="menuitem">Выйти</button>
+          <button class="dropdown-item dropdown-item-danger" id="logoutBtn">${Icons ? Icons.logOut : ''} Выйти</button>
         </div>
       </div>
     ` : `
-      <a href="${base}pages/login.html" class="btn-login">Войти</a>
-      <a href="${base}pages/register.html" class="btn-register">Регистрация</a>
+      <a href="${base}pages/auth.html" class="btn btn-outline btn-sm">Войти</a>
+      <a href="${base}pages/auth.html?mode=register" class="btn btn-primary btn-sm">Регистрация</a>
     `;
 
-    const mobileLinks = token && user ? `
-      <a href="${base}index.html" class="mobile-menu-item">Менторы</a>
-      <a href="${dashLink}" class="mobile-menu-item">Личный кабинет</a>
-      <a href="${base}pages/chat.html" class="mobile-menu-item">Сообщения</a>
-      <a href="${base}pages/notifications.html" class="mobile-menu-item">Уведомления</a>
-      <button class="mobile-menu-item mobile-menu-logout" id="mobileLogoutBtn">Выйти</button>
-    ` : `
-      <a href="${base}index.html" class="mobile-menu-item">Менторы</a>
-      <a href="${base}pages/login.html" class="mobile-menu-item">Войти</a>
-      <a href="${base}pages/register.html" class="mobile-menu-item">Регистрация</a>
+    /* theme toggle */
+    const themeHtml = `
+      <button class="theme-toggle" id="themeToggleBtn" title="Тема">
+        ${Icons ? Icons.moon : '🌙'}
+      </button>
     `;
-
-    const themeToggleBtn = `
-      <button class="theme-toggle" id="themeToggleBtn" title="Сменить тему" aria-label="Сменить тему">
-        <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-        </svg>
-        <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"/>
-          <line x1="12" y1="1" x2="12" y2="3"/>
-          <line x1="12" y1="21" x2="12" y2="23"/>
-          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-          <line x1="1" y1="12" x2="3" y2="12"/>
-          <line x1="21" y1="12" x2="23" y2="12"/>
-          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-        </svg>
-      </button>`;
 
     header.innerHTML = `
       <div class="container">
         <a href="${base}index.html" class="logo">Mentor<span>Connect</span></a>
-        <nav class="header-nav" aria-label="Основная навигация">
-          <a href="${base}index.html" class="nav-link">Менторы</a>
-          ${desktopAuth}
-          ${themeToggleBtn}
+        <nav class="header-nav" id="headerNav" aria-label="Навигация">
+          <div class="nav-pill" id="navPill"></div>
+          ${navLinksHtml}
         </nav>
-        <button class="hamburger" id="hamburgerBtn" aria-label="Открыть меню" aria-expanded="false">
-          <span></span><span></span><span></span>
-        </button>
+        <div class="header-actions">
+          ${authHtml}
+          ${themeHtml}
+          <button class="hamburger" id="hamburgerBtn" aria-label="Меню" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
       </div>
-      <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
-        ${mobileLinks}
-        <button class="mobile-menu-item theme-toggle-mobile" id="themeToggleMobileBtn">
-          <span id="themeToggleMobileLabel">${_storedTheme === 'dark' ? '☀️ Светлая тема' : '🌙 Тёмная тема'}</span>
-        </button>
+      <div class="mobile-menu" id="mobileMenu">
+        ${links.map(l => `<a href="${l.href}" class="mobile-menu-item">${l.label}</a>`).join('')}
+        ${token && user ? `<button class="mobile-menu-item mobile-menu-logout" id="mobileLogoutBtn">Выйти</button>` : ''}
+        <button class="mobile-menu-item" id="mobileThemeBtn">Сменить тему</button>
       </div>
     `;
 
-    /* --- Гамбургер --- */
+    /* === Nav Pill (задача 020) === */
+    positionNavPill();
+    window.addEventListener('resize', positionNavPill);
+
+    function positionNavPill() {
+      const pill    = document.getElementById('navPill');
+      const active  = document.querySelector('.nav-link.active');
+      const nav     = document.getElementById('headerNav');
+      if (!pill || !active || !nav) return;
+      const navRect    = nav.getBoundingClientRect();
+      const activeRect = active.getBoundingClientRect();
+      pill.style.width  = activeRect.width + 'px';
+      pill.style.transform = `translateX(${activeRect.left - navRect.left}px)`;
+      pill.style.top = ((nav.offsetHeight - 32) / 2) + 'px';
+    }
+
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', function () {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+        positionNavPill();
+      });
+    });
+
+    /* === Scroll blur (задача 019) === */
+    function onScroll() {
+      header.classList.toggle('scrolled', window.scrollY > 20);
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    /* === Hamburger (задача 023) === */
     const hamburger  = document.getElementById('hamburgerBtn');
     const mobileMenu = document.getElementById('mobileMenu');
     if (hamburger && mobileMenu) {
-      hamburger.addEventListener('click', (e) => {
+      hamburger.addEventListener('click', e => {
         e.stopPropagation();
         const open = mobileMenu.classList.toggle('open');
         hamburger.classList.toggle('open', open);
         hamburger.setAttribute('aria-expanded', open);
-        mobileMenu.setAttribute('aria-hidden', !open);
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { mobileMenu.classList.remove('open'); hamburger.classList.remove('open'); }
       });
     }
 
-    /* --- Дропдаун пользователя --- */
+    /* === User dropdown === */
     const userMenuBtn  = document.getElementById('userMenuBtn');
     const userDropdown = document.getElementById('userDropdown');
     if (userMenuBtn && userDropdown) {
-      userMenuBtn.addEventListener('click', (e) => {
+      userMenuBtn.addEventListener('click', e => {
         e.stopPropagation();
         const open = userDropdown.classList.toggle('show');
         userMenuBtn.setAttribute('aria-expanded', open);
       });
     }
-
-    /* --- Закрытие при клике вне шапки --- */
     document.addEventListener('click', () => {
-      if (mobileMenu)  { mobileMenu.classList.remove('open'); }
-      if (hamburger)   { hamburger.classList.remove('open'); hamburger.setAttribute('aria-expanded', 'false'); }
-      if (userDropdown){ userDropdown.classList.remove('show'); }
-      if (userMenuBtn) { userMenuBtn.setAttribute('aria-expanded', 'false'); }
+      userDropdown && userDropdown.classList.remove('show');
+      mobileMenu   && mobileMenu.classList.remove('open');
+      hamburger    && hamburger.classList.remove('open');
     });
 
-    /* --- Выход --- */
+    /* === Logout === */
     function doLogout() {
       localStorage.removeItem('mc_token');
       localStorage.removeItem('mc_user');
       window.location.href = base + 'index.html';
     }
-    const dropBtn   = document.getElementById('dropdownLogoutBtn');
-    const mobileBtn = document.getElementById('mobileLogoutBtn');
-    if (dropBtn)   dropBtn.addEventListener('click', doLogout);
-    if (mobileBtn) mobileBtn.addEventListener('click', doLogout);
+    document.getElementById('logoutBtn')       && document.getElementById('logoutBtn').addEventListener('click', doLogout);
+    document.getElementById('mobileLogoutBtn') && document.getElementById('mobileLogoutBtn').addEventListener('click', doLogout);
 
-    /* --- Переключение темы --- */
+    /* === Theme toggle (задача 024) === */
     function toggleTheme() {
-      const current = document.documentElement.getAttribute('data-theme') || 'light';
-      const next    = current === 'dark' ? 'light' : 'dark';
-      applyTheme(next);
-      const mobileLabel = document.getElementById('themeToggleMobileLabel');
-      if (mobileLabel) {
-        mobileLabel.textContent = next === 'dark' ? '☀️ Светлая тема' : '🌙 Тёмная тема';
-      }
+      const cur  = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(cur === 'dark' ? 'light' : 'dark');
     }
+    document.getElementById('themeToggleBtn') && document.getElementById('themeToggleBtn').addEventListener('click', toggleTheme);
+    document.getElementById('mobileThemeBtn') && document.getElementById('mobileThemeBtn').addEventListener('click', toggleTheme);
 
-    const themeBtn       = document.getElementById('themeToggleBtn');
-    const themeBtnMobile = document.getElementById('themeToggleMobileBtn');
-    if (themeBtn)       themeBtn.addEventListener('click', toggleTheme);
-    if (themeBtnMobile) themeBtnMobile.addEventListener('click', toggleTheme);
+    /* === Notif badge (задача 022) === */
+    updateNotifBadge(window._unreadCount || 0);
   }
 
+  /* === Badge notifications (задача 022) === */
+  function updateNotifBadge(count) {
+    const badge = document.getElementById('notifBadge');
+    if (!badge) return;
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.classList.add('visible');
+    } else {
+      badge.classList.remove('visible');
+    }
+  }
+  window.updateNotifBadge = updateNotifBadge;
+
+  /* --- Init --- */
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', renderHeader);
   } else {

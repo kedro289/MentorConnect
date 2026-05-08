@@ -4,361 +4,405 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MentorConnect — найди своего ментора</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
+<div class="custom-cursor"></div>
+
 <header class="site-header"></header>
 
-<!-- ===== HERO ===== -->
+<!-- ===== HERO (задача 025 + 026 + 027) ===== -->
 <section class="hero">
-  <div class="hero-content">
-    <h1>Найди ментора и расти быстрее</h1>
-    <p class="hero-sub">Опытные специалисты помогут вам освоить новые навыки,<br>найти работу мечты и выйти на новый уровень</p>
-    <div class="search-bar">
-      <input type="text" id="heroSearch" placeholder="Введите навык, язык или специализацию..." oninput="debouncedSearch()">
-      <button onclick="doHeroSearch()">Найти ментора</button>
-    </div>
-    <div class="hero-cta">
-      <a href="pages/register.html?role=mentor" class="cta-outline">Стать ментором →</a>
-    </div>
-    <div class="hero-stats">
-      <div class="hero-stat"><strong>150+</strong><span>менторов</span></div>
-      <div class="hero-stat"><strong>500+</strong><span>студентов</span></div>
-      <div class="hero-stat"><strong>9</strong><span>категорий</span></div>
-    </div>
+  <div class="hero-bg">
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+    <div class="hero-blob hero-blob-3"></div>
   </div>
-  <div class="hero-wave">
-    <svg viewBox="0 0 1440 48" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,24 C240,48 480,0 720,24 C960,48 1200,0 1440,24 L1440,48 L0,48 Z" fill="#F5F5F5"/>
-    </svg>
+  <div class="container">
+    <div class="hero-content">
+      <p class="section-label hero-anim" style="animation-delay:0ms">Платформа менторства</p>
+      <h1 class="hero-title hero-anim" style="animation-delay:100ms">
+        Найди своего<br>
+        <span class="hero-crossfade-wrap">
+          <span class="hero-crossfade-word active">ментора</span>
+          <span class="hero-crossfade-word">наставника</span>
+          <span class="hero-crossfade-word">учителя</span>
+          <span class="hero-crossfade-word">гида</span>
+        </span>
+      </h1>
+      <p class="hero-sub hero-anim" style="animation-delay:200ms">
+        Опытные специалисты помогут освоить новые навыки, найти работу мечты и выйти на новый профессиональный уровень
+      </p>
+      <div class="hero-cta hero-anim" style="animation-delay:300ms">
+        <a href="pages/auth.html?mode=register&role=student" class="btn btn-primary btn-lg">Найти ментора</a>
+        <a href="pages/auth.html?mode=register&role=mentor" class="btn btn-outline btn-lg">Стать ментором</a>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ===== КАТЕГОРИИ ===== -->
-<section class="categories-section">
-  <div class="categories-chips" id="categoryChips">
-    <button class="category-chip active" data-cat="" onclick="selectCategory('',this)">🌐 Все</button>
-    <button class="category-chip" data-cat="JavaScript" onclick="selectCategory('JavaScript',this)">💻 JavaScript</button>
-    <button class="category-chip" data-cat="Python" onclick="selectCategory('Python',this)">🐍 Python</button>
-    <button class="category-chip" data-cat="React" onclick="selectCategory('React',this)">⚛️ React</button>
-    <button class="category-chip" data-cat="Node.js" onclick="selectCategory('Node.js',this)">🟢 Node.js</button>
-    <button class="category-chip" data-cat="Data Science" onclick="selectCategory('Data Science',this)">📊 Data Science</button>
-    <button class="category-chip" data-cat="Дизайн" onclick="selectCategory('Дизайн',this)">🎨 Дизайн</button>
-    <button class="category-chip" data-cat="Mobile" onclick="selectCategory('Mobile',this)">📱 Mobile</button>
-    <button class="category-chip" data-cat="Консультация" onclick="selectCategory('Консультация',this)">💼 Карьера</button>
+<!-- ===== СТАТИСТИКА (задача 032) ===== -->
+<section class="section-sm">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item reveal">
+        <div class="stat-value" data-countup data-target="500" data-suffix="+">0</div>
+        <div class="stat-label">Менторов</div>
+      </div>
+      <div class="stat-item reveal">
+        <div class="stat-value" data-countup data-target="2000" data-suffix="+">0</div>
+        <div class="stat-label">Студентов</div>
+      </div>
+      <div class="stat-item reveal">
+        <div class="stat-value" data-countup data-target="10000" data-suffix="+">0</div>
+        <div class="stat-label">Сессий</div>
+      </div>
+      <div class="stat-item reveal">
+        <div class="stat-value" data-countup data-target="48" data-prefix="4." data-suffix="★">0</div>
+        <div class="stat-label">Средний рейтинг</div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ===== ФИЛЬТРЫ ===== -->
-<div class="filters">
-  <form id="filterForm" onsubmit="return false;">
-    <select id="filterCategory" style="display:none">
-      <option value="">Все категории</option>
-      <option value="JavaScript">JavaScript</option>
-      <option value="Python">Python</option>
-      <option value="Node.js">Node.js</option>
-      <option value="React">React</option>
-      <option value="Data Science">Data Science</option>
-      <option value="Дизайн">Дизайн</option>
-      <option value="Mobile">Mobile</option>
-      <option value="Консультация">Консультация</option>
-    </select>
-    <select id="filterPrice">
-      <option value="">Любая цена</option>
-      <option value="free">Бесплатно</option>
-      <option value="paid">Платно</option>
-    </select>
-    <input type="number" id="filterRating" placeholder="Рейтинг от" min="1" max="5" style="width:130px">
-    <span class="filter-sort-label">Сортировка:</span>
-    <select id="filterSort">
-      <option value="rating_score">По объективному рейтингу ↓</option>
-      <option value="rating">По средней оценке</option>
-      <option value="rating_reviews">По оценкам студентов</option>
-      <option value="rating_activity">По активности</option>
-      <option value="rating_response">По времени ответа</option>
-      <option value="reviews">По числу отзывов</option>
-      <option value="price_asc">Цена: дешевле</option>
-      <option value="price_desc">Цена: дороже</option>
-      <option value="experience">По опыту</option>
-      <option value="newest">Новые</option>
-    </select>
-    <button onclick="loadMentors(1)">Применить</button>
-    <button type="button" class="btn-reset" onclick="resetFilters()">Сбросить</button>
-  </form>
-</div>
-
-<!-- ===== СПИСОК МЕНТОРОВ ===== -->
-<main class="main-content">
-  <div class="section-title" id="sectionTitle">Менторы</div>
-  <div id="resultsCount" class="results-count"></div>
-  <div id="mentorsGrid" class="mentors-grid">
-    <div class="loader"><div class="spinner"></div></div>
+<!-- ===== ПРЕИМУЩЕСТВА (задача 028) ===== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-label">Почему MentorConnect</p>
+      <h2>Всё что нужно для роста</h2>
+      <p>Мы создали пространство, где каждый найдёт поддержку и знания</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal" style="transition-delay:0ms">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <h3>Проверенные менторы</h3>
+        <p>Каждый ментор проходит верификацию. Только реальные специалисты с подтверждённым опытом.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:80ms">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <h3>Личный рейтинг</h3>
+        <p>Многофакторная система оценки по откликам, активности и скорости ответа.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:160ms">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        </div>
+        <h3>Прямой чат</h3>
+        <p>Общайтесь с ментором в реальном времени через встроенный чат с уведомлениями.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:240ms">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3>Быстрый подбор</h3>
+        <p>Умный поиск по специализации, рейтингу и цене. Найдите подходящего за минуты.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:320ms">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <h3>Отзывы студентов</h3>
+        <p>Читайте честные отзывы от реальных учеников перед выбором ментора.</p>
+      </div>
+      <div class="feature-card reveal" style="transition-delay:400ms">
+        <div class="feature-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1Z"/></svg>
+        </div>
+        <h3>Безопасные сделки</h3>
+        <p>Защита студента: оплата только после подтверждения ментора. Без рисков.</p>
+      </div>
+    </div>
   </div>
-  <div id="pagination" class="pagination"></div>
-</main>
+</section>
 
-<!-- ===== FOOTER ===== -->
+<!-- ===== ТОП МЕНТОРОВ — КАРУСЕЛЬ (задача 029 + 030) ===== -->
+<section class="section" style="background:var(--color-surface);border-top:1px solid var(--color-border);border-bottom:1px solid var(--color-border)">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-label">Топ платформы</p>
+      <h2>Популярные менторы</h2>
+      <p>Специалисты с лучшим рейтингом и десятками довольных студентов</p>
+    </div>
+    <div class="carousel-wrap" id="carouselWrap">
+      <div class="carousel-track" id="carouselTrack">
+        <!-- заполняется JS -->
+      </div>
+    </div>
+    <div class="carousel-btns">
+      <button class="btn btn-outline btn-sm" id="carouselPrev">← Назад</button>
+      <button class="btn btn-outline btn-sm" id="carouselNext">Вперёд →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ПРИСОЕДИНЯЙСЯ (задача 031) ===== -->
+<section class="section">
+  <div class="container">
+    <div class="cta-split reveal">
+      <div class="cta-col">
+        <div class="cta-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <h3>Я студент</h3>
+        <p>Найди ментора в своей области и расти вдвое быстрее с личным наставником</p>
+        <a href="pages/auth.html?mode=register&role=student" class="btn btn-primary btn-md">Начать обучение</a>
+      </div>
+      <div class="cta-divider"></div>
+      <div class="cta-col">
+        <div class="cta-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+        </div>
+        <h3>Я ментор</h3>
+        <p>Делись знаниями, помогай студентам расти и получай благодарность и доход</p>
+        <a href="pages/auth.html?mode=register&role=mentor" class="btn btn-outline btn-md">Стать ментором</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER (задача 033) ===== -->
 <footer class="site-footer">
-  <div class="footer-inner">
-    <div class="footer-col">
-      <a href="index.html" class="footer-logo">Mentor<span>Connect</span></a>
-      <p class="footer-desc">Платформа для подбора менторов. Найдите опытного специалиста в вашей области и ускорьте профессиональный рост.</p>
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <a href="index.html" class="footer-logo">Mentor<span>Connect</span></a>
+        <p class="footer-desc">Платформа для подбора менторов. Найдите опытного специалиста и ускорьте профессиональный рост.</p>
+        <div class="footer-social">
+          <a href="#" title="Telegram">TG</a>
+          <a href="#" title="VK">VK</a>
+          <a href="#" title="GitHub">GH</a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Платформа</h4>
+        <ul class="footer-links">
+          <li><a href="index.html">Найти ментора</a></li>
+          <li><a href="pages/how-it-works.html">Как это работает</a></li>
+          <li><a href="pages/about.html">О проекте</a></li>
+          <li><a href="pages/faq.html">FAQ</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Менторам</h4>
+        <ul class="footer-links">
+          <li><a href="pages/auth.html?mode=register&role=mentor">Стать ментором</a></li>
+          <li><a href="pages/blog.html">Блог</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Контакты</h4>
+        <ul class="footer-links">
+          <li><a href="mailto:hello@mentorconnect.ru">hello@mentorconnect.ru</a></li>
+        </ul>
+      </div>
     </div>
-    <div class="footer-col">
-      <h4>Платформа</h4>
-      <ul class="footer-links">
-        <li><a href="index.html">Найти ментора</a></li>
-        <li><a href="pages/register.html">Стать ментором</a></li>
-        <li><a href="pages/login.html">Войти</a></li>
-      </ul>
-    </div>
-    <div class="footer-col">
-      <h4>Категории</h4>
-      <ul class="footer-links">
-        <li><a href="#" onclick="selectCategory('JavaScript',null);return false">JavaScript</a></li>
-        <li><a href="#" onclick="selectCategory('Python',null);return false">Python</a></li>
-        <li><a href="#" onclick="selectCategory('Дизайн',null);return false">Дизайн</a></li>
-        <li><a href="#" onclick="selectCategory('Data Science',null);return false">Data Science</a></li>
-      </ul>
+    <div class="footer-bottom">
+      <span>© 2026 MentorConnect</span>
+      <span>Сделано с ♥ для обучения</span>
     </div>
   </div>
-  <div class="footer-bottom">&copy; 2026 MentorConnect — платформа для подбора менторов</div>
 </footer>
 
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/icons.js"></script>
 <script src="js/api.js"></script>
+<script src="js/animations.js"></script>
 <script src="js/header.js"></script>
 <script src="js/notifSocket.js"></script>
 <script>
-  let currentPage = 1;
-  let currentKeyword = '';
-  let _favoriteIds = new Set();
+/* ===== Crossfade hero (задача 027) ===== */
+(function() {
+  const words = document.querySelectorAll('.hero-crossfade-word');
+  if (!words.length) return;
+  let cur = 0;
+  setInterval(() => {
+    words[cur].classList.remove('active');
+    cur = (cur + 1) % words.length;
+    words[cur].classList.add('active');
+  }, 3000);
+})();
 
-  /* --- Debounce --- */
-  function debounce(fn, delay) {
-    let t;
-    return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
-  }
-  const debouncedSearch = debounce(() => {
-    currentKeyword = document.getElementById('heroSearch').value.trim();
-    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
-    document.querySelector('.category-chip[data-cat=""]').classList.add('active');
-    document.getElementById('filterCategory').value = '';
-    loadMentors(1);
-  }, 420);
+/* ===== Carousel (задача 029 + 030) ===== */
+const MOCK_MENTORS = [
+  { id:1, name:'Алексей Петров',    specialty:'JavaScript / React',    tags:['Frontend','React'],         rating:4.9, reviews:87, price:'1500 ₽/час', initials:'А' },
+  { id:2, name:'Мария Иванова',     specialty:'Python / Data Science',  tags:['Python','ML'],              rating:4.8, reviews:64, price:'Бесплатно',  initials:'М' },
+  { id:3, name:'Дмитрий Сидоров',   specialty:'Backend / Node.js',      tags:['Node.js','PostgreSQL'],     rating:4.7, reviews:52, price:'1200 ₽/час', initials:'Д' },
+  { id:4, name:'Анна Козлова',      specialty:'UI/UX Design',           tags:['Figma','UX'],               rating:4.9, reviews:91, price:'2000 ₽/час', initials:'А' },
+  { id:5, name:'Сергей Новиков',    specialty:'Mobile / iOS',           tags:['Swift','iOS'],              rating:4.6, reviews:38, price:'1800 ₽/час', initials:'С' },
+  { id:6, name:'Елена Морозова',    specialty:'DevOps / Kubernetes',    tags:['Docker','K8s'],             rating:4.8, reviews:43, price:'2200 ₽/час', initials:'Е' },
+  { id:7, name:'Кирилл Волков',     specialty:'Data Science / ML',      tags:['TensorFlow','Python'],      rating:4.7, reviews:56, price:'1600 ₽/час', initials:'К' },
+  { id:8, name:'Наталья Смирнова',  specialty:'Product Management',     tags:['Agile','Scrum'],            rating:4.9, reviews:79, price:'Бесплатно',  initials:'Н' },
+  { id:9, name:'Павел Захаров',     specialty:'Android / Kotlin',       tags:['Kotlin','Android'],         rating:4.5, reviews:31, price:'1400 ₽/час', initials:'П' },
+  { id:10,name:'Ольга Федорова',    specialty:'QA / Automation',        tags:['Selenium','Testing'],       rating:4.8, reviews:67, price:'1100 ₽/час', initials:'О' },
+];
 
-  /* --- URL state --- */
-  function updateUrl(params) {
-    const sp = new URLSearchParams();
-    if (params.keyword)   sp.set('q', params.keyword);
-    if (params.category)  sp.set('cat', params.category);
-    if (params.sort && params.sort !== 'rating') sp.set('sort', params.sort);
-    if (params.page && params.page > 1) sp.set('page', params.page);
-    const qs = sp.toString();
-    history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname);
-  }
-
-  function readUrl() {
-    const sp = new URLSearchParams(window.location.search);
-    const q    = sp.get('q')    || '';
-    const cat  = sp.get('cat')  || '';
-    const sort = sp.get('sort') || 'rating';
-    const page = parseInt(sp.get('page') || '1', 10);
-    if (q) {
-      document.getElementById('heroSearch').value = q;
-      currentKeyword = q;
-    }
-    if (cat) {
-      document.getElementById('filterCategory').value = cat;
-      const chip = document.querySelector(`.category-chip[data-cat="${cat}"]`);
-      if (chip) {
-        document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-      }
-    }
-    const sortEl = document.getElementById('filterSort');
-    if (sortEl && sort) sortEl.value = sort;
-    return page;
-  }
-
-  /* --- Skeleton loading --- */
-  function renderSkeletons(count) {
-    return Array.from({ length: count }, () => `
-      <div class="mentor-card-skeleton">
-        <div class="skeleton skel-avatar"></div>
-        <div class="skel-body">
-          <div class="skeleton skel-line wide"></div>
-          <div class="skeleton skel-line medium"></div>
-          <div class="skeleton skel-line wide"></div>
-          <div class="skeleton skel-line short"></div>
+function mentorCardHtml(m) {
+  const stars = '★'.repeat(Math.round(m.rating)) + '☆'.repeat(5 - Math.round(m.rating));
+  return `
+    <a href="pages/mentor-profile.html?id=${m.id}" class="mentor-card">
+      <div class="mentor-card-top">
+        <div class="mentor-avatar">${m.initials}</div>
+        <div class="mentor-info">
+          <div class="mentor-name">${m.name}</div>
+          <div class="mentor-specialty">${m.specialty}</div>
+          <div class="mentor-tags">${m.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
         </div>
-      </div>`).join('');
+      </div>
+      <div class="mentor-footer">
+        <div class="rating-display">
+          <span style="color:var(--color-accent)">${stars}</span>
+          <span class="rating-value">${m.rating}</span>
+          <span class="review-count">(${m.reviews})</span>
+        </div>
+        <span class="mentor-price${m.price==='Бесплатно'?' mentor-price-free':''}">${m.price}</span>
+      </div>
+    </a>`;
+}
+
+(function initCarousel() {
+  const track = document.getElementById('carouselTrack');
+  if (!track) return;
+  const all = [...MOCK_MENTORS, ...MOCK_MENTORS];
+  track.innerHTML = all.map(mentorCardHtml).join('');
+
+  const prevBtn = document.getElementById('carouselPrev');
+  const nextBtn = document.getElementById('carouselNext');
+  const wrap    = document.getElementById('carouselWrap');
+  const cardW   = 320;
+
+  prevBtn && prevBtn.addEventListener('click', () => { wrap.scrollBy({ left: -(cardW + 20), behavior: 'smooth' }); });
+  nextBtn && nextBtn.addEventListener('click', () => { wrap.scrollBy({ left:  (cardW + 20), behavior: 'smooth' }); });
+})();
+
+/* ===== Mentors grid (если переходим на главную как каталог) ===== */
+let currentPage = 1;
+let currentKeyword = '';
+let _favoriteIds = new Set();
+
+function debounce(fn, d) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), d); }; }
+
+function renderSkeletons(n) {
+  return Array.from({length:n}, () => `
+    <div class="skeleton-card">
+      <div class="skeleton skel-avatar"></div>
+      <div class="skel-body">
+        <div class="skeleton skel-line skel-wide"></div>
+        <div class="skeleton skel-line skel-mid"></div>
+        <div class="skeleton skel-line skel-wide"></div>
+        <div class="skeleton skel-line skel-short"></div>
+      </div>
+    </div>`).join('');
+}
+
+function starsHtml(r) { const f=Math.round(r||0); return '★'.repeat(f)+'☆'.repeat(5-f); }
+function pluralize(n) {
+  if (n%10===1 && n%100!==11) return '';
+  if ([2,3,4].includes(n%10) && ![12,13,14].includes(n%100)) return 'а';
+  return 'ов';
+}
+
+function renderMentors(mentors, total) {
+  const rc = document.getElementById('resultsCount');
+  const grid = document.getElementById('mentorsGrid');
+  if (!grid) return;
+  if (rc) rc.textContent = total ? `Найдено: ${total} ментор${pluralize(total)}` : '';
+  if (!mentors.length) {
+    grid.innerHTML = `<div class="empty-state"><h3>Ничего не найдено</h3><p>Попробуйте изменить фильтры</p></div>`;
+    return;
   }
+  grid.innerHTML = mentors.map(m => {
+    const init = (m.full_name||'М').charAt(0).toUpperCase();
+    const av = m.avatar_url ? `<img src="${m.avatar_url}" alt="">` : init;
+    const tags = (m.expertise||[]).slice(0,3).map(e=>`<span class="tag">${e}</span>`).join('');
+    const price = m.price_type==='free'
+      ? `<span class="mentor-price mentor-price-free">Бесплатно</span>`
+      : `<span class="mentor-price">${m.price_amount||'—'} ₽/час</span>`;
+    return `<a href="pages/mentor-profile.html?id=${m.id}" class="mentor-card">
+      <div class="mentor-card-top">
+        <div class="mentor-avatar">${av}</div>
+        <div class="mentor-info">
+          <div class="mentor-name">${m.full_name||'Имя не указано'}</div>
+          <div class="mentor-specialty">${(m.expertise||[]).join(', ') || 'Специализация не указана'}</div>
+          <div class="mentor-tags">${tags}</div>
+        </div>
+      </div>
+      <div class="mentor-footer">
+        <div class="rating-display">
+          <span style="color:var(--color-accent)">${starsHtml(m.avg_rating)}</span>
+          <span class="rating-value">${(+m.avg_rating||0).toFixed(1)}</span>
+          <span class="review-count">(${m.total_reviews||0})</span>
+        </div>
+        ${price}
+      </div>
+    </a>`;
+  }).join('');
 
-  /* --- Категории-чипы --- */
-  function selectCategory(cat, el) {
-    document.getElementById('filterCategory').value = cat;
-    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
-    if (el) el.classList.add('active');
-    else {
-      const chip = document.querySelector(`.category-chip[data-cat="${cat}"]`);
-      if (chip) chip.classList.add('active');
-    }
-    currentKeyword = '';
-    document.getElementById('heroSearch').value = '';
-    document.getElementById('sectionTitle').textContent = cat ? `Менторы — ${cat}` : 'Менторы';
-    loadMentors(1);
-    window.scrollTo({ top: document.querySelector('.main-content').offsetTop - 80, behavior: 'smooth' });
+  applyStagger && applyStagger('#mentorsGrid .mentor-card', 0, 50);
+  initScrollReveal && initScrollReveal();
+}
+
+function renderPagination(total, page, limit, pages) {
+  const el = document.getElementById('pagination');
+  if (!el) return;
+  pages = pages || Math.ceil(total/limit);
+  if (pages<=1) { el.innerHTML=''; return; }
+  let h = `<button onclick="loadMentors(${page-1})" ${page===1?'disabled':''}>←</button>`;
+  const s=Math.max(1,page-2), e=Math.min(pages,page+2);
+  if (s>1) h+=`<button onclick="loadMentors(1)">1</button>${s>2?'<span style="padding:0 6px;color:var(--color-muted)">…</span>':''}`;
+  for(let i=s;i<=e;i++) h+=`<button onclick="loadMentors(${i})" class="${i===page?'active':''}">${i}</button>`;
+  if(e<pages) h+=`${e<pages-1?'<span style="padding:0 6px;color:var(--color-muted)">…</span>':''}<button onclick="loadMentors(${pages})">${pages}</button>`;
+  h+=`<button onclick="loadMentors(${page+1})" ${page===pages?'disabled':''}>→</button>`;
+  el.innerHTML=h;
+}
+
+async function loadMentors(page=1) {
+  currentPage=page;
+  const grid = document.getElementById('mentorsGrid');
+  if (!grid) return;
+  const cat  = (document.getElementById('filterCategory')||{}).value||'';
+  const pr   = (document.getElementById('filterPrice')||{}).value||'';
+  const rat  = (document.getElementById('filterRating')||{}).value||'';
+  const sort = (document.getElementById('filterSort')||{}).value||'rating_score';
+  grid.innerHTML = renderSkeletons(6);
+  try {
+    const {mentors,total,pages} = await searchMentors({keyword:currentKeyword,category:cat,priceType:pr,minRating:rat,sort,page,limit:12});
+    renderMentors(mentors,total);
+    renderPagination(total,page,12,pages);
+  } catch {
+    grid.innerHTML = `<div class="empty-state"><h3>Ошибка загрузки</h3><p>Проверьте подключение к серверу</p></div>`;
   }
+}
 
-  function doHeroSearch() {
-    currentKeyword = document.getElementById('heroSearch').value.trim();
-    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
-    document.querySelector('.category-chip[data-cat=""]').classList.add('active');
-    document.getElementById('filterCategory').value = '';
-    loadMentors(1);
-    window.scrollTo({ top: document.querySelector('.main-content').offsetTop - 80, behavior: 'smooth' });
+function resetFilters() {
+  ['filterCategory','filterPrice','filterRating'].forEach(id => { const el=document.getElementById(id); if(el)el.value=''; });
+  const s=document.getElementById('filterSort'); if(s)s.value='rating_score';
+  currentKeyword='';
+  const hi=document.getElementById('heroSearch'); if(hi)hi.value='';
+  loadMentors(1);
+}
+
+const debouncedSearch = debounce(() => {
+  currentKeyword=(document.getElementById('heroSearch')||{}).value||'';
+  loadMentors(1);
+}, 420);
+
+(async function init() {
+  if (getToken && getToken()) {
+    try { const d=await getFavorites(); _favoriteIds=new Set((d.favorites||[]).map(f=>f.mentor_id)); } catch{}
   }
-
-  function resetFilters() {
-    document.getElementById('filterCategory').value = '';
-    document.getElementById('filterPrice').value = '';
-    document.getElementById('filterRating').value = '';
-    document.getElementById('filterSort').value = 'rating_score';
-    document.getElementById('heroSearch').value = '';
-    currentKeyword = '';
-    document.getElementById('sectionTitle').textContent = 'Менторы';
-    document.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
-    document.querySelector('.category-chip[data-cat=""]').classList.add('active');
-    loadMentors(1);
-  }
-
-  async function loadMentors(page = 1) {
-    currentPage = page;
-    const category  = document.getElementById('filterCategory').value;
-    const priceType = document.getElementById('filterPrice').value;
-    const minRating = document.getElementById('filterRating').value;
-    const sort      = document.getElementById('filterSort').value || 'rating_score';
-
-    document.getElementById('mentorsGrid').innerHTML = renderSkeletons(6);
-
-    updateUrl({ keyword: currentKeyword, category, sort, page });
-
-    try {
-      const { mentors, total, pages } = await searchMentors({
-        keyword: currentKeyword, category, priceType, minRating, sort, page, limit: 12,
-      });
-      renderMentors(mentors, total);
-      renderPagination(total, page, 12, pages);
-    } catch {
-      document.getElementById('mentorsGrid').innerHTML =
-        '<div class="empty-state"><div class="icon">⚠️</div><p>Не удалось загрузить данные. Проверьте подключение к серверу.</p></div>';
-    }
-  }
-
-  function renderMentors(mentors, total) {
-    document.getElementById('resultsCount').textContent =
-      total ? `Найдено: ${total} ментор${pluralize(total)}` : '';
-    if (!mentors.length) {
-      document.getElementById('mentorsGrid').innerHTML =
-        '<div class="empty-state"><div class="icon">🔍</div><p>По вашему запросу ничего не найдено</p></div>';
-      return;
-    }
-    document.getElementById('mentorsGrid').innerHTML = mentors.map(m => {
-      const initials = (m.full_name || 'М').charAt(0).toUpperCase();
-      const avatar = m.avatar_url
-        ? `<img src="${m.avatar_url}" alt="${m.full_name || ''}">`
-        : `<span>${initials}</span>`;
-      const expBadge = m.experience_years
-        ? `<span class="exp-badge">${m.experience_years} лет опыта</span>` : '';
-      const tags = (m.expertise || []).slice(0, 3).map(e => `<span class="tag">${e}</span>`).join('');
-      const priceBadge = m.price_type === 'free'
-        ? `<span class="price-badge price-free">Бесплатно</span>`
-        : `<span class="price-badge price-paid">${m.price_amount || '—'} ₽/час</span>`;
-      const rating  = (+m.avg_rating || 0).toFixed(1);
-      const reviews = m.total_reviews || 0;
-      const isFav   = _favoriteIds.has(m.id);
-      const favBtn  = getToken()
-        ? `<button class="favorite-btn ${isFav?'fav-active':''}" onclick="toggleFav(event,${m.id},this)" title="${isFav?'Убрать из избранного':'В избранное'}">${isFav?'❤️':'🤍'}</button>`
-        : '';
-
-      return `
-        <a href="pages/mentor-profile.html?id=${m.id}" class="mentor-card">
-          ${favBtn}
-          <div class="mentor-avatar">${avatar}</div>
-          <div class="mentor-info">
-            <div class="mentor-name">${m.full_name || 'Имя не указано'}${expBadge}</div>
-            <div class="mentor-expertise">${tags}</div>
-            <div class="mentor-bio">${m.bio || 'Биография не указана'}</div>
-            <div class="mentor-footer">
-              <div class="mentor-rating">
-                <span class="stars">${starsHtml(m.avg_rating || 0)}</span>
-                <strong>${rating}</strong>
-                <span class="review-count">(${reviews})</span>
-              </div>
-              ${priceBadge}
-            </div>
-          </div>
-        </a>`;
-    }).join('');
-  }
-
-  async function toggleFav(e, mentorId, btn) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!getToken()) { window.location.href = 'pages/login.html'; return; }
-    const isFav = _favoriteIds.has(mentorId);
-    try {
-      if (isFav) {
-        await removeFavorite(mentorId);
-        _favoriteIds.delete(mentorId);
-        btn.textContent = '🤍';
-        btn.classList.remove('fav-active');
-        btn.title = 'В избранное';
-      } else {
-        await addFavorite(mentorId);
-        _favoriteIds.add(mentorId);
-        btn.textContent = '❤️';
-        btn.classList.add('fav-active');
-        btn.title = 'Убрать из избранного';
-      }
-    } catch { /* silently ignore auth errors */ }
-  }
-
-  function renderPagination(total, page, limit, pages) {
-    pages = pages || Math.ceil(total / limit);
-    const el = document.getElementById('pagination');
-    if (pages <= 1) { el.innerHTML = ''; return; }
-    let html = `<button onclick="loadMentors(${page-1})" ${page===1?'disabled':''}>←</button>`;
-    const start = Math.max(1, page - 2);
-    const end   = Math.min(pages, page + 2);
-    if (start > 1) html += `<button onclick="loadMentors(1)">1</button>${start>2?'<span style="padding:0 4px">…</span>':''}`;
-    for (let i = start; i <= end; i++) {
-      html += `<button onclick="loadMentors(${i})" class="${i===page?'active':''}">${i}</button>`;
-    }
-    if (end < pages) html += `${end<pages-1?'<span style="padding:0 4px">…</span>':''}<button onclick="loadMentors(${pages})">${pages}</button>`;
-    html += `<button onclick="loadMentors(${page+1})" ${page===pages?'disabled':''}>→</button>`;
-    el.innerHTML = html;
-  }
-
-  function pluralize(n) {
-    if (n % 10 === 1 && n % 100 !== 11) return '';
-    if ([2,3,4].includes(n%10) && ![12,13,14].includes(n%100)) return 'а';
-    return 'ов';
-  }
-
-  /* --- Init --- */
-  (async function() {
-    const startPage = readUrl();
-    if (getToken()) {
-      try {
-        const data = await getFavorites();
-        _favoriteIds = new Set((data.favorites || []).map(f => f.mentor_id));
-      } catch { /* not fatal */ }
-    }
-    loadMentors(startPage);
-  })();
+  if (document.getElementById('mentorsGrid')) loadMentors(1);
+})();
 </script>
 </body>
 </html>

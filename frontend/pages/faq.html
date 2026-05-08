@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<section class="section">
+  <div class="container" style="max-width:760px">
+    <div class="section-header reveal">
+      <p class="section-label">Поддержка</p>
+      <h2>Частые вопросы</h2>
+      <p>Ответы на самые популярные вопросы о платформе</p>
+    </div>
+
+    <!-- Поиск -->
+    <div class="search-wrap reveal" style="margin-bottom:32px">
+      <span class="search-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </span>
+      <input type="text" class="search-input" id="faqSearch" placeholder="Поиск по вопросам..." oninput="filterFaq(this.value)">
+    </div>
+
+    <div class="accordion reveal" id="faqAccordion">
+      <!-- заполняется JS -->
+    </div>
+
+    <div id="faqEmpty" style="display:none;text-align:center;padding:48px;color:var(--color-muted)">
+      <p>Ничего не найдено по вашему запросу</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+const FAQS = [
+  { q: 'Как найти подходящего ментора?', a: 'Используйте поиск и фильтры на главной странице. Вы можете фильтровать по специализации, рейтингу, цене и языку. Читайте отзывы студентов перед выбором.' },
+  { q: 'Сколько стоит менторство?', a: 'Цена зависит от ментора. Некоторые предлагают бесплатные сессии, другие берут от 500 до 5000 ₽ в час. Все условия указаны в профиле ментора заранее.' },
+  { q: 'Как стать ментором?', a: 'Зарегистрируйтесь и выберите роль "Ментор". Заполните профиль, добавьте специализации и создайте первое предложение. После модерации вы появитесь в каталоге.' },
+  { q: 'Как работает система заявок?', a: 'Студент отправляет заявку ментору с описанием целей. Ментор рассматривает её и принимает или отклоняет. После принятия открывается чат для общения.' },
+  { q: 'Безопасно ли платить через платформу?', a: 'Да, все транзакции защищены. Оплата происходит только после подтверждения ментором. Если сессия не состоялась — деньги возвращаются.' },
+  { q: 'Можно ли отменить заявку?', a: 'Да, студент может отменить заявку до её принятия ментором. После принятия — обсудите отмену с ментором напрямую в чате.' },
+  { q: 'Как оставить отзыв о менторе?', a: 'После завершения сессии в разделе "Мои заявки" появится кнопка "Оставить отзыв". Укажите оценку от 1 до 5 звёзд и напишите комментарий.' },
+  { q: 'Что делать, если ментор не отвечает?', a: 'Если ментор не ответил на заявку в течение 48 часов, она автоматически закрывается. Вы можете выбрать другого ментора или написать нам в поддержку.' },
+  { q: 'Как изменить или удалить аккаунт?', a: 'Все настройки аккаунта доступны в разделе "Профиль → Настройки". Там можно изменить данные или удалить аккаунт. Удаление необратимо.' },
+  { q: 'Есть ли мобильное приложение?', a: 'Пока нет, но наш сайт полностью адаптирован для мобильных устройств. Мобильное приложение в разработке.' },
+];
+
+function renderFaqs(list) {
+  const acc = document.getElementById('faqAccordion');
+  const empty = document.getElementById('faqEmpty');
+  if (!list.length) { acc.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  acc.innerHTML = list.map((item, i) => `
+    <div class="accordion-item" data-index="${i}">
+      <button class="accordion-header" onclick="toggleFaqItem(this)">
+        <span>${item.q}</span>
+        <svg class="accordion-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="accordion-body">
+        <div class="accordion-content">${item.a}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleFaqItem(btn) {
+  const item = btn.closest('.accordion-item');
+  const isOpen = item.classList.contains('open');
+  document.querySelectorAll('.accordion-item.open').forEach(el => el.classList.remove('open'));
+  if (!isOpen) item.classList.add('open');
+}
+
+function filterFaq(query) {
+  const q = query.toLowerCase().trim();
+  const filtered = q ? FAQS.filter(f => f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q)) : FAQS;
+  renderFaqs(filtered);
+}
+
+renderFaqs(FAQS);
+</script>
+</body>
+</html>

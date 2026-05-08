@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Статистика — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── KPI Cards ── */
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; margin-bottom:40px; }
+    .kpi-card {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:24px 20px;
+      text-align:center;
+      transition:transform var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    .kpi-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-glow); }
+    .kpi-icon { font-size:1.75rem; margin-bottom:10px; display:block; }
+    .kpi-val { font-family:var(--font-heading); font-size:2rem; font-weight:700; color:var(--color-accent); line-height:1; margin-bottom:6px; }
+    .kpi-label { font-size:.8125rem; color:var(--color-muted); }
+
+    /* ── Bar chart ── */
+    .chart-block {
+      background:var(--color-surface); border:1px solid var(--color-border);
+      border-radius:var(--radius-lg); padding:28px; margin-bottom:32px;
+    }
+    .chart-title { font-family:var(--font-heading); font-weight:700; font-size:1.0625rem; margin-bottom:24px; }
+    .bar-chart { display:flex; align-items:flex-end; gap:10px; height:160px; }
+    .bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
+    .bar-fill {
+      width:100%; border-radius:6px 6px 0 0;
+      background:rgba(205,180,255,.25);
+      border:1px solid rgba(205,180,255,.35);
+      min-height:4px;
+      transform:scaleY(0); transform-origin:bottom;
+      transition:transform 600ms cubic-bezier(0.4,0,0.2,1);
+    }
+    .bar-fill.animated { transform:scaleY(1); }
+    .bar-fill.highlight { background:rgba(205,180,255,.55); border-color:rgba(205,180,255,.7); }
+    .bar-label { font-size:.6875rem; color:var(--color-muted); white-space:nowrap; }
+    .bar-val   { font-size:.75rem; color:var(--color-accent); font-weight:600; }
+    .chart-x { display:flex; gap:10px; margin-top:8px; }
+    .chart-x-item { flex:1; text-align:center; font-size:.6875rem; color:var(--color-muted); }
+
+    /* ── Period tabs ── */
+    .period-tabs { display:flex; gap:4px; background:var(--color-surface2); border-radius:var(--radius-sm); padding:3px; width:fit-content; margin-bottom:20px; }
+    .period-tab { padding:6px 16px; border-radius:6px; border:none; background:none; color:var(--color-muted); font-family:var(--font-body); font-size:.8125rem; cursor:pointer; transition:all var(--transition-fast); }
+    .period-tab.active { background:var(--color-accent); color:#1A1A1A; font-weight:600; }
+  </style>
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<section class="section">
+  <div class="container" style="max-width:900px">
+
+    <div style="margin-bottom:32px" class="reveal">
+      <h1 style="font-size:clamp(1.5rem,3vw,2rem)">Статистика</h1>
+      <p style="color:var(--color-muted);margin-top:4px">Обзор вашей активности на платформе</p>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpi-grid reveal">
+      <div class="kpi-card">
+        <span class="kpi-icon">👥</span>
+        <div class="kpi-val" data-count="12">0</div>
+        <div class="kpi-label">Активных студентов</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-icon">💬</span>
+        <div class="kpi-val" data-count="48">0</div>
+        <div class="kpi-label">Сессий проведено</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-icon">⭐</span>
+        <div class="kpi-val" data-count-dec="4.8">0</div>
+        <div class="kpi-label">Средний рейтинг</div>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-icon">💰</span>
+        <div class="kpi-val" data-count="36500" data-prefix="">0</div>
+        <div class="kpi-label">Заработано, ₽</div>
+      </div>
+    </div>
+
+    <!-- Bar chart -->
+    <div class="chart-block reveal">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div class="chart-title">Сессии по неделям</div>
+        <div class="period-tabs">
+          <button class="period-tab active" onclick="setPeriod('month',this)">Месяц</button>
+          <button class="period-tab" onclick="setPeriod('quarter',this)">Квартал</button>
+        </div>
+      </div>
+      <div class="bar-chart" id="barChart"></div>
+      <div class="chart-x" id="chartX"></div>
+    </div>
+
+    <!-- Reviews distribution mini -->
+    <div class="chart-block reveal">
+      <div class="chart-title">Распределение оценок</div>
+      <div id="ratingDist" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+const DATA = {
+  month:   { vals:[3,5,7,4,6,8,5,4,6,7,8,6], labels:['Н1','Н2','Н3','Н4','Н5','Н6','Н7','Н8','Н9','Н10','Н11','Н12'] },
+  quarter: { vals:[18,24,22,28,30,26,32,35,31,28,33,38], labels:['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'] },
+};
+const RATING_DIST = [{r:5,n:3},{r:4,n:1},{r:3,n:1},{r:2,n:0},{r:1,n:0}];
+let period = 'month';
+
+function setPeriod(p, btn) {
+  period = p;
+  document.querySelectorAll('.period-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderChart();
+}
+
+function renderChart() {
+  const d = DATA[period];
+  const max = Math.max(...d.vals);
+  const lastIdx = d.vals.length - 1;
+  document.getElementById('barChart').innerHTML = d.vals.map((v,i) => `
+    <div class="bar-col">
+      <div class="bar-val">${v}</div>
+      <div class="bar-fill ${i===lastIdx?'highlight':''}" style="height:${(v/max*100).toFixed(1)}%"></div>
+    </div>`).join('');
+  document.getElementById('chartX').innerHTML = d.labels.map(l=>`<div class="chart-x-item">${l}</div>`).join('');
+  setTimeout(() => document.querySelectorAll('.bar-fill').forEach(b=>b.classList.add('animated')), 50);
+}
+
+function renderRatingDist() {
+  const total = RATING_DIST.reduce((s,x)=>s+x.n,0);
+  document.getElementById('ratingDist').innerHTML = RATING_DIST.map(({r,n}) => {
+    const pct = total ? (n/total*100).toFixed(0) : 0;
+    return `<div style="display:flex;align-items:center;gap:10px;font-size:.8125rem">
+      <span style="width:24px;text-align:right;color:var(--color-muted)">${r}★</span>
+      <div style="flex:1;height:8px;background:var(--color-surface2);border-radius:999px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:var(--color-accent);border-radius:999px;transition:width 700ms cubic-bezier(0.4,0,0.2,1)"></div>
+      </div>
+      <span style="width:28px;color:var(--color-muted)">${n}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── CountUp for KPI ── */
+function countUp(el, target, dec=false) {
+  const duration = 1400;
+  const start = performance.now();
+  function tick(now) {
+    const p = Math.min((now-start)/duration,1);
+    const ease = 1 - Math.pow(1-p,3);
+    const val = dec ? (target*ease).toFixed(1) : Math.round(target*ease).toLocaleString('ru');
+    el.textContent = val;
+    if (p < 1) requestAnimationFrame(tick);
+    else el.textContent = dec ? target.toFixed(1) : target.toLocaleString('ru');
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ── IntersectionObserver for KPI counters ── */
+const kpiObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const vals = e.target.querySelectorAll('[data-count],[data-count-dec]');
+    vals.forEach(el => {
+      const dec = el.hasAttribute('data-count-dec');
+      countUp(el, dec ? +el.dataset.countDec : +el.dataset.count, dec);
+    });
+    kpiObs.unobserve(e.target);
+  });
+}, { threshold:0.3 });
+document.querySelectorAll('.kpi-grid').forEach(el => kpiObs.observe(el));
+
+renderChart();
+renderRatingDist();
+</script>
+</body>
+</html>

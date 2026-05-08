@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Профиль — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Tab pill nav (задача-069) ── */
+    .profile-tabs {
+      display:flex; position:relative; background:var(--color-surface);
+      border:1px solid var(--color-border); border-radius:var(--radius-md);
+      padding:4px; gap:0; margin-bottom:32px; overflow:hidden;
+    }
+    .tab-pill {
+      position:absolute; top:4px; left:4px; height:calc(100% - 8px);
+      background:var(--color-accent); border-radius:var(--radius-sm);
+      transition:transform 300ms ease, width 300ms ease;
+      pointer-events:none; z-index:0;
+    }
+    .tab-btn {
+      flex:1; padding:9px 12px; border:none; background:none;
+      font-family:var(--font-body); font-size:.9rem; cursor:pointer;
+      color:var(--color-muted); transition:color 300ms ease;
+      position:relative; z-index:1; border-radius:var(--radius-sm);
+      white-space:nowrap;
+    }
+    .tab-btn.active { color:#1A1A1A; font-weight:600; }
+    .tab-btn:hover:not(.active) { color:var(--color-text); }
+
+    /* ── Tab panels ── */
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; animation:fadeInUp 300ms ease both; }
+    @keyframes fadeInUp {
+      from { opacity:0; transform:translateY(12px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── Avatar upload (задача-070) ── */
+    .avatar-upload-wrap { display:flex; align-items:center; gap:20px; margin-bottom:24px; flex-wrap:wrap; }
+    .avatar-preview {
+      width:88px; height:88px; border-radius:50%;
+      background:rgba(205,180,255,.12); border:2px solid var(--color-border);
+      display:flex; align-items:center; justify-content:center;
+      font-family:var(--font-heading); font-weight:700; font-size:1.5rem; color:var(--color-accent);
+      overflow:hidden; flex-shrink:0; transition:border-color var(--transition-fast);
+      cursor:pointer; position:relative;
+    }
+    .avatar-preview:hover { border-color:var(--color-accent); }
+    .avatar-preview img { width:100%; height:100%; object-fit:cover; display:none; border-radius:50%; }
+    .avatar-overlay {
+      position:absolute; inset:0; border-radius:50%;
+      background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center;
+      opacity:0; transition:opacity var(--transition-fast);
+    }
+    .avatar-preview:hover .avatar-overlay { opacity:1; }
+    .avatar-file { display:none; }
+
+    /* ── Chips (специализация) ── */
+    .chips-field { display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; background:var(--color-surface2); border:1px solid var(--color-border); border-radius:var(--radius-sm); cursor:text; transition:border-color var(--transition-fast); min-height:44px; }
+    .chips-field:focus-within { border-color:var(--color-accent); }
+    .chip-item { display:flex; align-items:center; gap:4px; background:rgba(205,180,255,.12); border:1px solid rgba(205,180,255,.2); border-radius:999px; padding:2px 10px; font-size:.8125rem; color:var(--color-accent); }
+    .chip-remove { background:none; border:none; cursor:pointer; padding:0; color:var(--color-muted); line-height:1; }
+    .chip-remove:hover { color:var(--color-error); }
+    .chip-text-input { background:none; border:none; outline:none; color:var(--color-text); font-family:var(--font-body); font-size:.875rem; min-width:100px; flex:1; }
+    .chip-text-input::placeholder { color:var(--color-muted); }
+
+    /* ── Save button states ── */
+    .btn-save { min-width:140px; }
+    .btn-save.success { background:rgba(134,239,172,.85); color:#1A1A1A; }
+
+    /* ── Toggle (задача-072) ── */
+    .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:16px 0; border-bottom:1px solid var(--color-border); gap:16px; }
+    .toggle-row:last-of-type { border-bottom:none; }
+    .toggle-info { flex:1; }
+    .toggle-info-title { font-weight:600; font-size:.9375rem; margin-bottom:2px; }
+    .toggle-info-desc  { font-size:.8125rem; color:var(--color-muted); }
+    .toggle-switch {
+      position:relative; width:44px; height:24px; cursor:pointer; flex-shrink:0;
+      background:var(--color-surface2); border:1px solid var(--color-border); border-radius:999px;
+      transition:background var(--transition-fast), border-color var(--transition-fast);
+    }
+    .toggle-switch.on { background:rgba(205,180,255,.25); border-color:rgba(205,180,255,.5); }
+    .toggle-switch::after {
+      content:''; position:absolute; top:3px; left:3px;
+      width:16px; height:16px; border-radius:50%;
+      background:var(--color-muted); transition:transform var(--transition-fast), background var(--transition-fast);
+    }
+    .toggle-switch.on::after { transform:translateX(20px); background:var(--color-accent); }
+
+    /* ── Danger zone ── */
+    .danger-zone { border:1px solid rgba(252,165,165,.2); border-radius:var(--radius-lg); padding:24px; margin-top:24px; }
+    .danger-title { font-family:var(--font-heading); font-weight:700; color:var(--color-error); margin-bottom:8px; }
+    .danger-text { font-size:.875rem; color:var(--color-muted); margin-bottom:16px; }
+    .confirm-delete { max-height:0; overflow:hidden; opacity:0; transition:max-height 300ms ease, opacity 250ms ease; }
+    .confirm-delete.open { max-height:120px; opacity:1; }
+  </style>
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<section class="section">
+  <div class="container" style="max-width:700px">
+
+    <div style="margin-bottom:28px" class="reveal">
+      <h1 style="font-size:clamp(1.5rem,3vw,2rem)">Профиль</h1>
+    </div>
+
+    <!-- Pill tabs (задача-069) -->
+    <div class="profile-tabs reveal" id="profileTabs">
+      <div class="tab-pill" id="tabPill"></div>
+      <button class="tab-btn active" data-tab="personal" onclick="switchTab('personal',this)">Личные данные</button>
+      <button class="tab-btn" data-tab="security" onclick="switchTab('security',this)">Безопасность</button>
+      <button class="tab-btn" data-tab="settings" onclick="switchTab('settings',this)">Настройки</button>
+    </div>
+
+    <!-- ════ TAB: ЛИЧНЫЕ ДАННЫЕ (задача-070) ════ -->
+    <div class="tab-panel active" id="panel-personal">
+      <!-- Avatar upload -->
+      <div class="avatar-upload-wrap reveal">
+        <label class="avatar-preview" for="avatarFile" title="Нажмите для загрузки фото">
+          <span id="avatarInitials">ВП</span>
+          <img id="avatarImg" alt="Аватар">
+          <div class="avatar-overlay">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+        </label>
+        <input class="avatar-file" type="file" id="avatarFile" accept="image/*" onchange="previewAvatar(this)">
+        <div>
+          <div style="font-weight:600;margin-bottom:4px">Фото профиля</div>
+          <div style="font-size:.8125rem;color:var(--color-muted);margin-bottom:10px">JPG, PNG. Макс. 5 МБ.</div>
+          <label for="avatarFile" class="btn btn-outline btn-sm" style="cursor:pointer">Загрузить фото</label>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div style="display:flex;flex-direction:column;gap:16px" class="reveal">
+        <div class="grid-2" style="gap:16px">
+          <div class="form-group">
+            <label class="form-label">Имя</label>
+            <input class="form-input" id="fieldName" placeholder="Ваше имя" value="Владислав Петров">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Город</label>
+            <input class="form-input" id="fieldCity" placeholder="Москва" value="Москва">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">О себе</label>
+          <textarea class="form-textarea" id="fieldBio" rows="3" placeholder="Расскажите о своём опыте...">Frontend-разработчик с 5-летним опытом. Специализируюсь на React и архитектуре SPA.</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Специализация (Enter — добавить)</label>
+          <div class="chips-field" id="specChips" onclick="document.getElementById('specInput').focus()">
+            <input class="chip-text-input" id="specInput" placeholder="React, Node.js...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">LinkedIn</label>
+          <input class="form-input" id="fieldLinkedin" placeholder="https://linkedin.com/in/...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">GitHub</label>
+          <input class="form-input" id="fieldGithub" placeholder="https://github.com/...">
+        </div>
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn btn-primary btn-md btn-save" id="savePersonalBtn" onclick="savePersonal()">Сохранить</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ TAB: БЕЗОПАСНОСТЬ (задача-071) ════ -->
+    <div class="tab-panel" id="panel-security">
+      <div style="display:flex;flex-direction:column;gap:16px" class="reveal">
+        <div class="form-group">
+          <label class="form-label">Текущий пароль</label>
+          <div style="position:relative">
+            <input class="form-input" type="password" id="curPass" placeholder="••••••••" style="padding-right:44px">
+            <button style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--color-muted);cursor:pointer" onclick="togglePwd('curPass',this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Новый пароль</label>
+          <div style="position:relative">
+            <input class="form-input" type="password" id="newPass" placeholder="Минимум 8 символов" style="padding-right:44px" oninput="checkPassMatch()">
+            <button style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--color-muted);cursor:pointer" onclick="togglePwd('newPass',this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Подтверждение пароля</label>
+          <div style="position:relative">
+            <input class="form-input" type="password" id="confPass" placeholder="Повторите пароль" style="padding-right:44px" oninput="checkPassMatch()">
+            <button style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--color-muted);cursor:pointer" onclick="togglePwd('confPass',this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="field-error" id="errPassMatch">Пароли не совпадают</div>
+          <div class="field-error" id="errPassLen">Пароль должен быть не менее 8 символов</div>
+        </div>
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn btn-primary btn-md btn-save" id="saveSecBtn" onclick="savePassword()">Изменить пароль</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════ TAB: НАСТРОЙКИ (задача-072) ════ -->
+    <div class="tab-panel" id="panel-settings">
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px" class="reveal">
+        <div style="font-family:var(--font-heading);font-weight:700;margin-bottom:16px">Уведомления</div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-info-title">Email-уведомления</div>
+            <div class="toggle-info-desc">Получать письма о новых заявках и сообщениях</div>
+          </div>
+          <div class="toggle-switch on" id="tgl-email" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-info-title">Push-уведомления</div>
+            <div class="toggle-info-desc">Уведомления в браузере в реальном времени</div>
+          </div>
+          <div class="toggle-switch on" id="tgl-push" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-info-title">Маркетинговые рассылки</div>
+            <div class="toggle-info-desc">Новости, акции и обновления платформы</div>
+          </div>
+          <div class="toggle-switch" id="tgl-mkt" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px;margin-bottom:24px" class="reveal">
+        <div style="font-family:var(--font-heading);font-weight:700;margin-bottom:16px">Язык интерфейса</div>
+        <select class="form-input" id="langSelect" style="max-width:240px">
+          <option value="ru" selected>Русский</option>
+          <option value="en">English</option>
+          <option value="uk">Українська</option>
+        </select>
+        <div style="display:flex;justify-content:flex-end;margin-top:16px">
+          <button class="btn btn-primary btn-md btn-save" id="saveSettBtn" onclick="saveSettings()">Сохранить настройки</button>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="danger-zone reveal">
+        <div class="danger-title">Удалить аккаунт</div>
+        <div class="danger-text">Это действие необратимо. Все ваши данные, сессии и переписка будут удалены.</div>
+        <button class="btn btn-danger btn-md" id="deleteAccBtn" onclick="showDeleteConfirm()">Удалить аккаунт</button>
+        <div class="confirm-delete" id="deleteConfirm">
+          <div style="padding-top:16px;display:flex;flex-direction:column;gap:12px">
+            <input class="form-input" id="deleteConfirmInput" placeholder="Введите DELETE для подтверждения">
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-danger btn-sm" onclick="confirmDelete()">Удалить навсегда</button>
+              <button class="btn btn-ghost btn-sm" onclick="hideDeleteConfirm()">Отмена</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+/* ════ TAB PILL (задача-069) ════ */
+function movePill(btn) {
+  const pill = document.getElementById('tabPill');
+  const tabs = document.getElementById('profileTabs');
+  const tabsRect = tabs.getBoundingClientRect();
+  const btnRect  = btn.getBoundingClientRect();
+  pill.style.width  = btnRect.width + 'px';
+  pill.style.transform = `translateX(${btnRect.left - tabsRect.left - 4}px)`;
+}
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  movePill(btn);
+  if (typeof initScrollReveal === 'function') initScrollReveal();
+}
+window.addEventListener('resize', () => {
+  const active = document.querySelector('.tab-btn.active');
+  if (active) movePill(active);
+});
+window.addEventListener('load', () => {
+  const active = document.querySelector('.tab-btn.active');
+  if (active) movePill(active);
+});
+
+/* ════ AVATAR (задача-070) ════ */
+function previewAvatar(input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('avatarImg');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('avatarInitials').style.display = 'none';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+/* ── Specialization chips ── */
+const specChips = [];
+['React','Node.js','TypeScript'].forEach(t => addSpecChip(t));
+function addSpecChip(text) {
+  const val = text.trim();
+  if (!val || specChips.includes(val)) return;
+  specChips.push(val);
+  const chip = document.createElement('span');
+  chip.className = 'chip-item';
+  chip.innerHTML = `${val}<button class="chip-remove" onclick="removeSpecChip('${val}',this)">×</button>`;
+  document.getElementById('specChips').insertBefore(chip, document.getElementById('specInput'));
+}
+function removeSpecChip(val, btn) {
+  specChips.splice(specChips.indexOf(val), 1);
+  btn.closest('.chip-item').remove();
+}
+document.getElementById('specInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addSpecChip(e.target.value); e.target.value=''; }
+});
+
+/* ── Save personal ── */
+async function savePersonal() {
+  const btn = document.getElementById('savePersonalBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const data = { name: document.getElementById('fieldName').value, bio: document.getElementById('fieldBio').value, city: document.getElementById('fieldCity').value, specs: [...specChips] };
+  try { await apiRequest('PUT', '/profile/me', data); } catch { /* ignore */ }
+  await new Promise(r => setTimeout(r, 600));
+  btn.disabled = false; btn.textContent = '✓ Сохранено'; btn.classList.add('success');
+  setTimeout(() => { btn.textContent = 'Сохранить'; btn.classList.remove('success'); }, 2200);
+}
+
+/* ════ SECURITY (задача-071) ════ */
+function togglePwd(id, btn) {
+  const inp = document.getElementById(id);
+  const isText = inp.type === 'text';
+  inp.type = isText ? 'password' : 'text';
+  btn.style.color = isText ? 'var(--color-muted)' : 'var(--color-accent)';
+}
+function checkPassMatch() {
+  const np = document.getElementById('newPass').value;
+  const cp = document.getElementById('confPass').value;
+  document.getElementById('errPassLen').classList.toggle('visible', np.length > 0 && np.length < 8);
+  document.getElementById('errPassMatch').classList.toggle('visible', cp.length > 0 && np !== cp);
+}
+async function savePassword() {
+  const cur  = document.getElementById('curPass').value;
+  const np   = document.getElementById('newPass').value;
+  const cp   = document.getElementById('confPass').value;
+  let valid  = true;
+  if (np.length < 8) { document.getElementById('errPassLen').classList.add('visible'); valid = false; }
+  if (np !== cp)     { document.getElementById('errPassMatch').classList.add('visible'); valid = false; }
+  if (!valid) return;
+  const btn = document.getElementById('saveSecBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  try { await apiRequest('PUT', '/profile/password', { currentPassword: cur, newPassword: np }); } catch { /* ignore */ }
+  await new Promise(r => setTimeout(r, 600));
+  btn.disabled = false; btn.textContent = '✓ Пароль изменён'; btn.classList.add('success');
+  document.getElementById('curPass').value = ''; document.getElementById('newPass').value = ''; document.getElementById('confPass').value = '';
+  setTimeout(() => { btn.textContent = 'Изменить пароль'; btn.classList.remove('success'); }, 2200);
+}
+
+/* ════ SETTINGS (задача-072) ════ */
+async function saveSettings() {
+  const btn = document.getElementById('saveSettBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>';
+  const data = {
+    notifEmail: document.getElementById('tgl-email').classList.contains('on'),
+    notifPush:  document.getElementById('tgl-push').classList.contains('on'),
+    notifMkt:   document.getElementById('tgl-mkt').classList.contains('on'),
+    lang:       document.getElementById('langSelect').value,
+  };
+  try { await apiRequest('PUT', '/profile/settings', data); } catch { /* ignore */ }
+  await new Promise(r => setTimeout(r, 500));
+  btn.disabled = false; btn.textContent = '✓ Сохранено'; btn.classList.add('success');
+  setTimeout(() => { btn.textContent = 'Сохранить настройки'; btn.classList.remove('success'); }, 2200);
+}
+function showDeleteConfirm() {
+  document.getElementById('deleteConfirm').classList.add('open');
+  document.getElementById('deleteAccBtn').style.display = 'none';
+}
+function hideDeleteConfirm() {
+  document.getElementById('deleteConfirm').classList.remove('open');
+  document.getElementById('deleteAccBtn').style.display = '';
+  document.getElementById('deleteConfirmInput').value = '';
+}
+async function confirmDelete() {
+  if (document.getElementById('deleteConfirmInput').value !== 'DELETE') {
+    document.getElementById('deleteConfirmInput').classList.add('invalid');
+    setTimeout(() => document.getElementById('deleteConfirmInput').classList.remove('invalid'), 1000);
+    return;
+  }
+  try { await apiRequest('DELETE', '/profile/me'); } catch { /* ignore */ }
+  window.location.href = '../index.html';
+}
+</script>
+</body>
+</html>

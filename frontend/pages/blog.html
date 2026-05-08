@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Блог — MentorConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="custom-cursor"></div>
+<header class="site-header"></header>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header reveal">
+      <p class="section-label">Знания</p>
+      <h2>Блог MentorConnect</h2>
+      <p>Статьи о карьере, обучении и менторстве</p>
+    </div>
+
+    <div class="filter-chips reveal" style="justify-content:center;margin-bottom:40px" id="blogFilters">
+      <button class="filter-chip active" data-cat="">Все</button>
+      <button class="filter-chip" data-cat="Карьера">Карьера</button>
+      <button class="filter-chip" data-cat="Обучение">Обучение</button>
+      <button class="filter-chip" data-cat="Менторство">Менторство</button>
+      <button class="filter-chip" data-cat="Технологии">Технологии</button>
+    </div>
+
+    <div class="mentors-grid" id="blogGrid"></div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container"><div class="footer-bottom"><span>© 2026 MentorConnect</span></div></div>
+</footer>
+
+<script src="../js/icons.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/header.js"></script>
+<script>
+const POSTS = [
+  { id:1, cat:'Менторство', title:'Как выбрать первого ментора: пошаговое руководство', date:'12 апр 2026', read:'5 мин', emoji:'🎯' },
+  { id:2, cat:'Карьера',    title:'10 признаков того, что вы готовы к смене специальности', date:'8 апр 2026',  read:'7 мин', emoji:'🚀' },
+  { id:3, cat:'Обучение',   title:'Как учиться эффективно: метод Фейнмана на практике', date:'3 апр 2026',  read:'4 мин', emoji:'🧠' },
+  { id:4, cat:'Технологии', title:'Почему каждый разработчик должен изучить TypeScript в 2026', date:'28 мар 2026', read:'6 мин', emoji:'💻' },
+  { id:5, cat:'Менторство', title:'Ментор vs онлайн-курс: что выбрать для быстрого роста', date:'22 мар 2026', read:'8 мин', emoji:'⚖️' },
+  { id:6, cat:'Карьера',    title:'Синдром самозванца у разработчиков: как с ним бороться', date:'15 мар 2026', read:'5 мин', emoji:'💪' },
+];
+
+function renderPosts(list) {
+  document.getElementById('blogGrid').innerHTML = list.map((p, i) => `
+    <div class="card reveal" style="transition-delay:${i*60}ms">
+      <div style="background:rgba(205,180,255,0.08);border-radius:var(--radius-sm) var(--radius-sm) 0 0;padding:40px;text-align:center;font-size:3rem">${p.emoji}</div>
+      <div class="card-body">
+        <span class="badge badge-pending" style="margin-bottom:12px">${p.cat}</span>
+        <h3 style="font-size:1.05rem;margin-bottom:12px;line-height:1.4">${p.title}</h3>
+        <div style="display:flex;gap:16px;color:var(--color-muted);font-size:0.8125rem">
+          <span>${p.date}</span>
+          <span>${p.read} чтения</span>
+        </div>
+        <div style="margin-top:16px">
+          <a href="#" class="btn btn-ghost btn-sm" style="padding-left:0">Читать →</a>
+        </div>
+      </div>
+    </div>`).join('');
+  initScrollReveal && initScrollReveal();
+}
+
+document.getElementById('blogFilters').addEventListener('click', e => {
+  const chip = e.target.closest('.filter-chip');
+  if (!chip) return;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  const cat = chip.dataset.cat;
+  renderPosts(cat ? POSTS.filter(p => p.cat === cat) : POSTS);
+});
+
+renderPosts(POSTS);
+</script>
+</body>
+</html>
